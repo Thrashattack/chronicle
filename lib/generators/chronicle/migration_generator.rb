@@ -34,7 +34,7 @@ module Chronicle
         type = parts[1] || 'string'
         options = {}
 
-        if parts[2] == 'index' || parts[2] == 'uniq' || parts[2] == 'unique'
+        if %w[index uniq unique].include?(parts[2])
           options[:index] = true
           options[:unique] = :identity if parts[2].start_with?('uniq')
         end

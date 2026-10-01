@@ -21,9 +21,9 @@ RSpec.describe Chronicle::Transport do
         allow(described_class).to receive(:jruby?).and_return(true)
       end
 
-      it 'instantiates a JRubyPeer transport' do
+      it 'instantiates a JRuby Client API transport' do
         transport = described_class.build(uri: 'datomic:free://localhost:4334/app')
-        expect(transport).to be_a(Chronicle::Transport::JRubyPeer)
+        expect(transport).to be_a(Chronicle::Transport::JRubyClient)
       end
     end
   end

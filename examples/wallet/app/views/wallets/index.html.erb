@@ -1,0 +1,25 @@
+<% content_for :title, 'Chronicle Wallet' %>
+
+<header class="hero">
+  <p class="eyebrow">Chronicle example</p>
+  <h1>A balance with a memory.</h1>
+  <p>Record money moving in and out, then trace exactly how the current balance was formed.</p>
+  <%= link_to 'Create a wallet', new_wallet_path, class: 'button button-primary' %>
+</header>
+
+<main class="wallet-shell">
+  <div class="section-heading"><h2>Your wallets</h2><span><%= pluralize(@wallets.size, 'wallet') %></span></div>
+  <% if @wallets.any? %>
+    <div class="wallet-grid">
+      <% @wallets.each do |wallet| %>
+        <%= link_to wallet_path(wallet), class: 'wallet-card' do %>
+          <span class="eyebrow"><%= wallet.name %></span>
+          <strong><%= number_to_currency(wallet.balance_cents / 100.0) %></strong>
+          <span><%= pluralize(wallet.wallet_entries.size, 'change') %> recorded</span>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">Create a wallet to begin tracing a balance.</div>
+  <% end %>
+</main>

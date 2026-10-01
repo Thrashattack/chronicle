@@ -5,8 +5,8 @@ module Chronicle
     attr_reader :basis_t, :tx_id, :transport, :transacted_datoms, :created_entity_ids, :datomic_result
 
     class << self
-      def transact(transport: nil, &block)
-        new(transport:).transact(&block)
+      def transact(transport: nil, &)
+        new(transport:).transact(&)
       end
     end
 
@@ -82,10 +82,8 @@ module Chronicle
     end
 
     def execute_compensating_retraction
-      retraction_datoms = []
-
-      @created_entity_ids.each do |eid|
-        retraction_datoms << [':db/retractEntity', eid]
+      retraction_datoms = @created_entity_ids.map do |eid|
+        [':db/retractEntity', eid]
       end
 
       if retraction_datoms.empty?

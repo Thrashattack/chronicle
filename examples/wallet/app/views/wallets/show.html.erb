@@ -1,0 +1,36 @@
+<% content_for :title, @wallet.name %>
+
+<main class="wallet-shell">
+  <%= link_to 'Back to wallets', wallets_path, class: 'text-link' %>
+  <section class="balance-hero">
+    <p class="eyebrow"><%= @wallet.name %></p>
+    <h1><%= number_to_currency(@wallet.balance_cents / 100.0) %></h1>
+    <p>Current balance</p>
+  </section>
+
+  <section class="entry-panel">
+    <div class="section-heading"><h2>Record a change</h2><span>Time-stamped</span></div>
+    <%= form_with url: deposit_wallet_path(@wallet), class: 'entry-form' do |form| %>
+      <%= form.number_field :amount, name: 'amount', step: '0.01', min: '0.01', placeholder: 'Amount', required: true %>
+      <%= form.text_field :description, name: 'description', placeholder: 'Description' %>
+      <%= form.submit 'Deposit', class: 'button button-primary' %>
+    <% end %>
+    <%= form_with url: withdraw_wallet_path(@wallet), class: 'entry-form' do |form| %>
+      <%= form.number_field :amount, name: 'amount', step: '0.01', min: '0.01', placeholder: 'Amount', required: true %>
+      <%= form.text_field :description, name: 'description', placeholder: 'Description' %>
+      <%= form.submit 'Withdraw', class: 'button button-secondary' %>
+    <% end %>
+  </section>
+
+  <section class="history-panel">
+    <div class="section-heading"><h2>Balance history</h2><span><%= pluralize(@entries.size, 'entry') %></span></div>
+    <ol class="timeline">
+      <% @entries.each do |entry| %>
+        <li class="timeline-item">
+          <div class="timeline-marker <%= entry.amount_cents.positive? ? 'positive' : 'negative' %>"><%= entry.amount_cents.positive? ? '+' : '-' %></div>
+          <div><time><%= l entry.created_at, format: :long %></time><h3><%= entry.description %></h3><p><%= number_to_currency(entry.amount_cents.abs / 100.0) %> changed the balance to <strong><%= number_to_currency(entry.balance_cents / 100.0) %></strong>.</p></div>
+        </li>
+      <% end %>
+    </ol>
+  </section>
+</main>

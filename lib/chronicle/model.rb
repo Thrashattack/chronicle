@@ -50,7 +50,7 @@ module Chronicle
 
     def to_datoms
       datoms = []
-      self.class.datomic_attributes.each do |attr_name, _meta|
+      self.class.datomic_attributes.each_key do |attr_name|
         val = public_send(attr_name)
         next if val.nil?
 

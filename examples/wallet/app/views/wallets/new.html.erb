@@ -1,0 +1,11 @@
+<% content_for :title, 'Create a wallet' %>
+
+<main class="form-shell">
+  <%= link_to 'Back to wallets', wallets_path, class: 'text-link' %>
+  <h1>Create a wallet</h1>
+  <%= form_with model: @wallet, url: wallets_path, class: 'wallet-form' do |form| %>
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true, autofocus: true %>
+    <%= form.submit 'Create wallet', class: 'button button-primary' %>
+  <% end %>
+</main>

@@ -15,10 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - '3.2'
-          - '3.3'
-          - '3.4'
-          - 'jruby-9.4'
+          - '3.4.5'
 
     steps:
       - name: Checkout Code
@@ -69,3 +66,9 @@ jobs:
           name: coverage-${{ matrix.ruby-version }}
           path: coverage/
           if-no-files-found: ignore
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/.resultset.json
+          fail_ci_if_error: false

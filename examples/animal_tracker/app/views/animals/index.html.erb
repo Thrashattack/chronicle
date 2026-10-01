@@ -1,0 +1,25 @@
+<% content_for :title, "Animal Tracker" %>
+
+<header class="hero">
+  <p class="eyebrow">Chronicle Peer API example</p>
+  <h1>Every path leaves a trace.</h1>
+  <p>Track an animal's position through time and replay the route as a line on the map.</p>
+  <%= link_to "Add an animal", new_animal_path, class: "button button-primary" %>
+</header>
+
+<main class="content-shell">
+  <div class="section-heading"><h2>Tracked animals</h2><span><%= pluralize(@animals.size, "animal") %></span></div>
+  <% if @animals.any? %>
+    <div class="animal-grid">
+      <% @animals.each do |animal| %>
+        <%= link_to animal_path(animal), class: "animal-card" do %>
+          <span class="species"><%= animal.species %></span>
+          <h3><%= animal.name %></h3>
+          <span><%= pluralize(animal.animal_locations.size, "position") %> recorded</span>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="empty-state">Add an animal to begin drawing its path.</p>
+  <% end %>
+</main>

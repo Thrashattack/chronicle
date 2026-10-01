@@ -82,7 +82,7 @@ module Chronicle
           col_name = col.is_a?(Arel::Nodes::Node) ? col.name : col.to_s
           var_name = "?#{col_name}"
           # Add attribute pattern to retrieve attribute value
-          @where_clause << ['?e', ":#{namespace}/#{col_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{col_name}", var_name]
           var_name
         end
         @find_clause = [:find] + find_vars
@@ -111,7 +111,7 @@ module Chronicle
           val = unwrap_value(pred.right)
           param_var = "?param_#{next_var_id}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, param_var]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", param_var]
           @in_clause << param_var
           @bindings << val
 
@@ -120,7 +120,7 @@ module Chronicle
           val = unwrap_value(pred.right)
           var_name = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", var_name]
           @where_clause << [[:>, var_name, val]]
 
         when Arel::Nodes::GreaterThanOrEqual
@@ -128,7 +128,7 @@ module Chronicle
           val = unwrap_value(pred.right)
           var_name = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", var_name]
           @where_clause << [[:>=, var_name, val]]
 
         when Arel::Nodes::LessThan
@@ -136,7 +136,7 @@ module Chronicle
           val = unwrap_value(pred.right)
           var_name = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", var_name]
           @where_clause << [[:<, var_name, val]]
 
         when Arel::Nodes::LessThanOrEqual
@@ -144,7 +144,7 @@ module Chronicle
           val = unwrap_value(pred.right)
           var_name = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", var_name]
           @where_clause << [[:<=, var_name, val]]
 
         when Arel::Nodes::NotEqual
@@ -153,7 +153,7 @@ module Chronicle
           param_var = "?param_#{next_var_id}"
           var_name = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, var_name]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", var_name]
           @where_clause << [[:!=, var_name, param_var]]
           @in_clause << param_var
           @bindings << val
@@ -164,7 +164,7 @@ module Chronicle
           param_var = "?in_vec_#{next_var_id}"
           val_var = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, val_var]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", val_var]
           @where_clause << [val_var, param_var]
           @in_clause << [param_var, '...']
           @bindings << values
@@ -175,7 +175,7 @@ module Chronicle
           param_var = "?in_vec_#{next_var_id}"
           val_var = "?var_#{attr_name}"
 
-          @where_clause << ['?e', ":#{namespace}/#{attr_name}".to_sym, val_var]
+          @where_clause << ['?e', :":#{namespace}/#{attr_name}", val_var]
           @where_clause << [val_var, param_var]
           @in_clause << [param_var, '...']
           @bindings << values

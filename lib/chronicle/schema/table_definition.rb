@@ -23,36 +23,36 @@ module Chronicle
         @attributes = []
       end
 
-      def string(name, **options)
-        add_attribute(name, :string, **options)
+      def string(name, **)
+        add_attribute(name, :string, **)
       end
 
-      def integer(name, **options)
-        add_attribute(name, :integer, **options)
+      def integer(name, **)
+        add_attribute(name, :integer, **)
       end
 
-      def bigint(name, **options)
-        add_attribute(name, :bigint, **options)
+      def bigint(name, **)
+        add_attribute(name, :bigint, **)
       end
 
-      def float(name, **options)
-        add_attribute(name, :float, **options)
+      def float(name, **)
+        add_attribute(name, :float, **)
       end
 
-      def boolean(name, **options)
-        add_attribute(name, :boolean, **options)
+      def boolean(name, **)
+        add_attribute(name, :boolean, **)
       end
 
-      def datetime(name, **options)
-        add_attribute(name, :datetime, **options)
+      def datetime(name, **)
+        add_attribute(name, :datetime, **)
       end
 
-      def ref(name, **options)
-        add_attribute(name, :ref, **options)
+      def ref(name, **)
+        add_attribute(name, :ref, **)
       end
 
-      def uuid(name, **options)
-        add_attribute(name, :uuid, **options)
+      def uuid(name, **)
+        add_attribute(name, :uuid, **)
       end
 
       def timestamps
