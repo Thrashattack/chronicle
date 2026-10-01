@@ -1,0 +1,23 @@
+<% content_for :title, @news_story.headline %>
+
+<main class="story-shell">
+  <%= link_to 'Back to feed', news_stories_path, class: 'text-link' %>
+  <article class="feature-story">
+    <div class="story-meta"><span><%= @news_story.source %></span><time>Updated <%= l @news_story.updated_at, format: :long %></time></div>
+    <h1><%= @news_story.headline %></h1>
+    <div class="story-body"><%= simple_format @news_story.body %></div>
+    <%= link_to 'Update this story', edit_news_story_path(@news_story), class: 'button button-primary' %>
+  </article>
+
+  <section class="history-panel">
+    <div class="section-heading"><h2>Revision history</h2><span><%= pluralize(@revisions.size, 'version') %></span></div>
+    <ol class="timeline">
+      <% @revisions.each_with_index do |revision, index| %>
+        <li class="timeline-item">
+          <div class="timeline-marker"><%= @revisions.size - index %></div>
+          <div><time><%= l revision.created_at, format: :long %></time><h3><%= revision.headline %></h3><p><%= truncate(revision.body, length: 180) %></p></div>
+        </li>
+      <% end %>
+    </ol>
+  </section>
+</main>

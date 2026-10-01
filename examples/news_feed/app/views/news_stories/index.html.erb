@@ -1,0 +1,30 @@
+<% content_for :title, 'Chronicle News Feed' %>
+
+<header class="hero">
+  <p class="eyebrow">Chronicle example</p>
+  <h1>News that remembers.</h1>
+  <p>Publish a story, update it, and inspect every revision without losing the original.</p>
+  <%= link_to 'Publish a story', new_news_story_path, class: 'button button-primary' %>
+</header>
+
+<main class="feed-shell">
+  <div class="section-heading">
+    <h2>Latest stories</h2>
+    <span><%= pluralize(@news_stories.size, 'story') %></span>
+  </div>
+
+  <% if @news_stories.any? %>
+    <div class="story-list">
+      <% @news_stories.each do |story| %>
+        <article class="story-card">
+          <div class="story-meta"><span><%= story.source %></span><time><%= time_ago_in_words(story.updated_at) %> ago</time></div>
+          <h3><%= link_to story.headline, story %></h3>
+          <p><%= truncate(story.body, length: 180) %></p>
+          <%= link_to 'View history', story, class: 'text-link' %>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">No stories yet. Publish the first update.</div>
+  <% end %>
+</main>
