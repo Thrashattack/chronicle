@@ -36,6 +36,9 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
       - name: Download and Start Datomic Transactor & Client HTTP API
         run: |
           echo "Installing Datomic Transactor for integration testing..."

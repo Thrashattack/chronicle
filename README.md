@@ -145,6 +145,20 @@ Run the RSpec test suite:
 bundle exec rspec
 ```
 
+Run the full pre-commit validation manually:
+
+```bash
+bundle exec rake quality
+```
+
+Enable the tracked Git hook once per checkout:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Commits are rejected if RuboCop or RSpec fails.
+
 ## License
 
 Chronicle is available as open source under the terms of the MIT License.

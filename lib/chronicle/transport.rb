@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "transport/base"
-require_relative "transport/cruby_client"
-require_relative "transport/jruby_peer"
+require_relative 'transport/base'
+require_relative 'transport/cruby_client'
+require_relative 'transport/jruby_peer'
 
 module Chronicle
   module Transport
@@ -15,8 +15,12 @@ module Chronicle
         end
       end
 
+      def client(config = {})
+        @client ||= build(config)
+      end
+
       def jruby?
-        RUBY_ENGINE == "jruby"
+        RUBY_ENGINE == 'jruby'
       end
     end
   end

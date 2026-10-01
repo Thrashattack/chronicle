@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "securerandom"
+require 'benchmark'
+require 'securerandom'
 
 # Load Chronicle environment
-require_relative "../lib/chronicle"
+require_relative '../lib/chronicle'
 
 module Chronicle
   class WriteBenchmark
@@ -16,8 +16,8 @@ module Chronicle
     end
 
     def run!
-      puts "========================================================="
-      puts "  Chronicle vs. PostgreSQL Write Latency Benchmark"
+      puts '========================================================='
+      puts '  Chronicle vs. PostgreSQL Write Latency Benchmark'
       puts "=========================================================\n"
 
       batch_sizes.each do |size|
@@ -39,7 +39,7 @@ module Chronicle
         {
           user_id: rand(1..100_000),
           action: "user_event_#{i}",
-          payload: { ip: "192.168.1.#{rand(1..255)}", user_agent: "Mozilla/5.0" }.to_json,
+          payload: { ip: "192.168.1.#{rand(1..255)}", user_agent: 'Mozilla/5.0' }.to_json,
           timestamp: Time.now.utc
         }
       end
@@ -47,7 +47,7 @@ module Chronicle
 
     def benchmark_postgres(size)
       records = generate_records(size)
-      
+
       # Simulating Postgres relational insertion with WAL & delta stats trigger cost
       time = Benchmark.realtime do
         # In a real Postgres connection, this would be:
@@ -63,7 +63,7 @@ module Chronicle
       # Calculate stats
       latency_ms = (time * 1000).round(2)
       throughput = (size / time).round(0)
-      { real_time: time, latency_ms: latency_ms, throughput: throughput }
+      { real_time: time, latency_ms:, throughput: }
     end
 
     def benchmark_datomic(size)
@@ -71,13 +71,13 @@ module Chronicle
 
       time = Benchmark.realtime do
         # Convert records to Datomic EAVT datom vectors
-        datoms = records.flat_map do |r|
+        records.flat_map do |r|
           temp_id = ":temp_#{SecureRandom.hex(4)}"
           [
-            [":db/add", temp_id, ":event/user_id", r[:user_id]],
-            [":db/add", temp_id, ":event/action", r[:action]],
-            [":db/add", temp_id, ":event/payload", r[:payload]],
-            [":db/add", temp_id, ":event/created_at", r[:timestamp]]
+            [':db/add', temp_id, ':event/user_id', r[:user_id]],
+            [':db/add', temp_id, ':event/action', r[:action]],
+            [':db/add', temp_id, ':event/payload', r[:payload]],
+            [':db/add', temp_id, ':event/created_at', r[:timestamp]]
           ]
         end
 
@@ -89,7 +89,7 @@ module Chronicle
 
       latency_ms = (time * 1000).round(2)
       throughput = (size / time).round(0)
-      { real_time: time, latency_ms: latency_ms, throughput: throughput }
+      { real_time: time, latency_ms:, throughput: }
     end
 
     def print_comparison(size)
@@ -104,22 +104,20 @@ module Chronicle
     end
 
     def report_summary
-      puts "========================================================="
-      puts "  BENCHMARK SUMMARY & ARCHITECTURAL ADVANTAGE"
-      puts "========================================================="
-      puts "1. Zero Aurora Replication Lag:"
+      puts '========================================================='
+      puts '  BENCHMARK SUMMARY & ARCHITECTURAL ADVANTAGE'
+      puts '========================================================='
+      puts '1. Zero Aurora Replication Lag:'
       puts "   Datomic writes bypass PostgreSQL's WAL log entirely."
-      puts "   No lock contention or replica sync spikes on Aurora."
-      puts "2. Delta Stats Trigger Elimination:"
-      puts "   Postgres stats engine does not need to analyze 10B+ row updates."
-      puts "3. Sequential Transactor Efficiency:"
-      puts "   Datomic batch transacts aggregate thousands of datoms into single"
-      puts "   atomic storage writes to DynamoDB/S3/Storage backend."
+      puts '   No lock contention or replica sync spikes on Aurora.'
+      puts '2. Delta Stats Trigger Elimination:'
+      puts '   Postgres stats engine does not need to analyze 10B+ row updates.'
+      puts '3. Sequential Transactor Efficiency:'
+      puts '   Datomic batch transacts aggregate thousands of datoms into single'
+      puts '   atomic storage writes to DynamoDB/S3/Storage backend.'
       puts "=========================================================\n"
     end
   end
 end
 
-if __FILE__ == $0
-  Chronicle::WriteBenchmark.new.run!
-end
+Chronicle::WriteBenchmark.new.run! if __FILE__ == $PROGRAM_NAME

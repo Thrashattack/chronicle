@@ -10,8 +10,8 @@ module Chronicle
 
     module ClassMethods
       def datomic_attribute(name, type = :string, options = {})
-        self.datomic_attributes = datomic_attributes.merge(name.to_sym => { type: type, options: options })
-        
+        self.datomic_attributes = datomic_attributes.merge(name.to_sym => { type:, options: })
+
         define_method(name) do
           read_attribute(name)
         end
@@ -32,15 +32,16 @@ module Chronicle
           rel.time_travel_options = { since: time_or_t }
         end
       end
+
+      def chronicle_transport
+        Chronicle::Transport.client
+      end
     end
 
     module TimeTravelExtension
-      attr_accessor :time_travel_options
+      include Relation
 
-      def exec_queries
-        # Query Datomic with time-travel parameters (as_of / since)
-        super
-      end
+      attr_accessor :time_travel_options
     end
 
     def datomic_entity_id
@@ -49,12 +50,12 @@ module Chronicle
 
     def to_datoms
       datoms = []
-      self.class.datomic_attributes.each do |attr_name, meta|
+      self.class.datomic_attributes.each do |attr_name, _meta|
         val = public_send(attr_name)
         next if val.nil?
 
         attr_ident = ":#{self.class.name.underscore}/#{attr_name}"
-        datoms << [":db/add", datomic_entity_id || ":temp_id", attr_ident, val]
+        datoms << [':db/add', datomic_entity_id || ':temp_id', attr_ident, val]
       end
       datoms
     end
