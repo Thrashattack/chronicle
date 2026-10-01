@@ -12,7 +12,8 @@ Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record
 - Ruby 3.4.5 or newer.
 - Rails Active Record 7.0 or newer.
 - Datomic Pro for the Docker examples and JRuby integrations.
-- Java 17 for Datomic and JRuby workloads.
+- Java 17 for the Datomic container.
+- Java 21 for JRuby 10 workloads.
 
 ## Capabilities
 
@@ -98,16 +99,22 @@ The application must load the Datomic distribution jars. The included Compose ex
 Include `Chronicle::Model` and declare the attributes stored in Datomic:
 
 ```ruby
-class HistoricalRecord < ApplicationRecord
-  include Chronicle::Model
+class DatomicRecord < ApplicationRecord
+  self.abstract_class = true
 
   connects_to database: { writing: :datomic, reading: :datomic }
+end
+
+class HistoricalRecord < DatomicRecord
+  include Chronicle::Model
 
   datomic_attribute :event_name, :string
   datomic_attribute :user_id, :integer, index: true
   datomic_attribute :payload, :string
 end
 ```
+
+`connects_to` must be declared on an abstract Active Record class. Rails 8 rejects it on a concrete model. Keep SQLite-backed models on `ApplicationRecord` and inherit Datomic-backed models from the abstract Datomic base.
 
 `Chronicle::Model` also provides `to_datoms`, `datomic_entity_id`, and model-level `.as_of` and `.since` query entry points.
 

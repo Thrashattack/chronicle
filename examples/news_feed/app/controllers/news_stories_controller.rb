@@ -2,7 +2,7 @@ class NewsStoriesController < ApplicationController
   before_action :set_news_story, only: %i[show edit update]
 
   def index
-    @news_stories = NewsStory.order(updated_at: :desc)
+    @news_stories = NewsStory.all
   end
 
   def show

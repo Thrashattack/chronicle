@@ -84,6 +84,26 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
     end
   end
 
+  describe 'CRuby REST Transport' do
+    it 'sends the Datalog form under the REST :query key' do
+      transport = Chronicle::Transport::CRubyClient.new(
+        client_endpoint: 'http://localhost:8001',
+        uri: 'datomic:dev://localhost:4334/chronicle_test',
+        rest: true
+      )
+      stubs = Faraday::Adapter::Test::Stubs.new do |stub|
+        stub.post('/api/query') do |env|
+          expect(env.body).to eq('{:query [:find ?e] :args [{:db/alias "dev/chronicle_test" :as-of nil :since nil}]}')
+          [200, { 'Content-Type' => 'application/edn' }, '[]']
+        end
+      end
+      transport.connection.adapter :test, stubs
+
+      expect(transport.q([:find, '?e'], 'db/alias' => 'dev/chronicle_test', 'as-of' => nil, 'since' => nil)).to eq([])
+      stubs.verify_stubbed_calls
+    end
+  end
+
   describe 'JRuby Transport (JRubyPeer - JVM Interop Protocol)' do
     subject(:transport) do
       Chronicle::Transport::JRubyPeer.new(uri:)
@@ -141,6 +161,13 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
 
         results = transport.q(query, mock_db, 'Bob')
         expect(results).to eq([[202, 'Bob']])
+      end
+
+      it 'converts namespaced Ruby symbols into single-colon Clojure keywords' do
+        api = Chronicle::Transport::JRubyClient::ClojureApi.allocate
+        allow(api).to receive(:keyword).with('wallet/name').and_return(:wallet_name)
+
+        expect(api.send(:clojure_value, :':wallet/name')).to eq(:wallet_name)
       end
     end
 

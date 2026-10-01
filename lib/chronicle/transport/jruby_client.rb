@@ -69,6 +69,9 @@ module Chronicle
 
           load_datomic_jars
           @clojure = Java::ClojureJavaApi::Clojure
+          @clojure.var('clojure.core', 'require').invoke(
+            @clojure.var('clojure.core', 'symbol').invoke('datomic.client.api')
+          )
         end
 
         def client(config)
@@ -114,6 +117,10 @@ module Chronicle
           @clojure.var(namespace, function)
         end
 
+        def keyword(value)
+          var('clojure.core', 'keyword').invoke(value.to_s.tr('_', '-'))
+        end
+
         def clojure_map(hash)
           entries = hash.flat_map { |key, value| [keyword(key), clojure_value(value)] }
           var('clojure.core', 'hash-map').invoke(*entries)
@@ -126,7 +133,12 @@ module Chronicle
           when Array
             Java::ClojureLang::PersistentVector.create(value.map { |item| clojure_value(item) })
           when Symbol
-            keyword(value)
+            symbol_name = value.to_s
+            return keyword(symbol_name.delete_prefix(':')) if symbol_name.start_with?(':')
+            return var('clojure.core', 'symbol').invoke(symbol_name) if symbol_name.start_with?('?', '$')
+            return var('clojure.core', 'symbol').invoke(symbol_name) if %w[> >= < <= !=].include?(symbol_name)
+
+            keyword(symbol_name)
           when String
             return var('clojure.core', 'symbol').invoke(value) if value.start_with?('?', '$')
             return keyword(value.delete_prefix(':')) if value.start_with?(':')
@@ -135,10 +147,6 @@ module Chronicle
           else
             value
           end
-        end
-
-        def keyword(value)
-          var('clojure.core', 'keyword').invoke(value.to_s.tr('_', '-'))
         end
 
         def ruby_value(value)

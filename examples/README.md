@@ -20,7 +20,7 @@ curl -k https://localhost:8001/data/
 
 The Datomic distribution is downloaded and installed during the image build. The peer server listens on `8998` for the wallet's official Client API connection and the animal tracker's direct Peer API connection. The REST service listens on `8001` for the CRuby news-feed example; the transactor uses `4334` and `4335`.
 
-The JRuby services use Eclipse Temurin JDK 17 as their base image and install JRuby 10.0.7.0 from the official JRuby distribution archive. They do not depend on a `jruby:* -jdk17` Docker tag.
+The JRuby services use Eclipse Temurin JDK 21 as their base image and install JRuby 10.0.7.0 from the official JRuby distribution archive. JRuby 10 requires Java 21. The Datomic service continues to use JDK 17.
 
 ## Run an app
 
@@ -39,5 +39,14 @@ The wallet is the JRuby example and should be run through Compose so it can load
 ```bash
 docker compose -f examples/docker-compose.yml up --build
 ```
+
+If this stack was started with an older Datomic configuration, recreate its development storage after changing the storage password:
+
+```bash
+docker compose -f examples/docker-compose.yml down -v
+docker compose -f examples/docker-compose.yml up --build
+```
+
+The `-v` removes only the local example volume. Do not use it for data you need to keep.
 
 The centralized services are available at `http://localhost:3000` (wallet), `http://localhost:3001` (news feed), `http://localhost:3002` (animal tracker), and `http://localhost:3003` (cross-store). Run the cross-store benchmark with `docker compose exec cross_store bundle exec ruby benchmark/cross_store_benchmark.rb`.

@@ -31,7 +31,10 @@ module Chronicle
         # 3. Process predicates in relation
         process_where_clause(namespace)
 
-        # 4. Assemble Datalog data structure
+        # 4. Fetch attributes needed to honor Active Record ordering
+        process_ordering(namespace)
+
+        # 5. Assemble Datalog data structure
         datalog_query = @find_clause + @in_clause + [:where] + @where_clause
 
         {
@@ -93,6 +96,24 @@ module Chronicle
 
         where_predicates.each do |pred|
           process_predicate(pred, namespace)
+        end
+      end
+
+      def process_ordering(namespace)
+        return unless relation.respond_to?(:order_values)
+
+        relation.order_values.each do |order|
+          expression = order.respond_to?(:expr) ? order.expr : order
+          next unless expression.respond_to?(:name)
+
+          attribute = expression.name.to_s
+          next if attribute == 'id' || !model.datomic_attributes.key?(attribute.to_sym)
+
+          variable = "?#{attribute}"
+          next if @find_clause.include?(variable)
+
+          @find_clause << variable
+          @where_clause << ['?e', :":#{namespace}/#{attribute}", variable]
         end
       end
 

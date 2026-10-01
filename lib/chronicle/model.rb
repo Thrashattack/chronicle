@@ -9,6 +9,10 @@ module Chronicle
     end
 
     module ClassMethods
+      def all(all_queries: nil)
+        super.extending(Relation)
+      end
+
       def datomic_attribute(name, type = :string, options = {})
         self.datomic_attributes = datomic_attributes.merge(name.to_sym => { type:, options: })
 
@@ -34,6 +38,9 @@ module Chronicle
       end
 
       def chronicle_transport
+        adapter = connection
+        return adapter.transport if adapter.respond_to?(:transport)
+
         Chronicle::Transport.client
       end
     end
