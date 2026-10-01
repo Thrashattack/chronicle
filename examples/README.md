@@ -20,6 +20,8 @@ curl -k https://localhost:8001/data/
 
 The Datomic distribution is downloaded and installed during the image build. The peer server listens on `8998` for the wallet's official Client API connection and the animal tracker's direct Peer API connection. The REST service listens on `8001` for the CRuby news-feed example; the transactor uses `4334` and `4335`.
 
+The JRuby services use Eclipse Temurin JDK 17 as their base image and install JRuby 10.0.7.0 from the official JRuby distribution archive. They do not depend on a `jruby:* -jdk17` Docker tag.
+
 ## Run an app
 
 From either app directory:
