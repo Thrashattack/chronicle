@@ -1,0 +1,11 @@
+<main class="shell">
+  <p class="eyebrow">Chronicle cross-store example</p>
+  <h1>SQLite rows, Datomic identities.</h1>
+  <p class="intro">Each purchase stores a foreign reference to a customer that lives in Datomic.</p>
+  <%= link_to "Record purchase", new_purchase_path, class: "button" %>
+  <section class="list">
+    <% @purchases.each do |purchase| %>
+      <article><strong><%= purchase.description %></strong><span><%= purchase.customer.name %></span><b><%= number_to_currency(purchase.amount_cents / 100.0) %></b></article>
+    <% end %>
+  </section>
+</main>

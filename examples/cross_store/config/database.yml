@@ -1,0 +1,16 @@
+default: &default
+  adapter: sqlite3
+  database: storage/development.sqlite3
+  timeout: 5000
+
+development:
+  primary:
+    <<: *default
+  datomic:
+    adapter: datomic
+    uri: <%= ENV.fetch("DATOMIC_URI", "datomic:dev://localhost:4334/cross-store") %>
+    client_endpoint: <%= ENV.fetch("DATOMIC_CLIENT_ENDPOINT", "http://localhost:8989") %>
+    rest: true
+
+test:
+  <<: *default

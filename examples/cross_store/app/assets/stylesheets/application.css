@@ -1,0 +1,14 @@
+:root { --ink: #17211b; --muted: #68736b; --paper: #f5f1e8; --card: #fffdf8; --mint: #b8e6c1; --line: #d9d5ca; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, serif; }
+a { color: inherit; }
+.shell { width: min(840px, calc(100% - 40px)); margin: auto; padding: 80px 0; }
+.eyebrow { color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+h1 { max-width: 680px; font-size: clamp(2.8rem, 8vw, 6rem); line-height: .95; }
+.intro { max-width: 560px; color: var(--muted); font-size: 1.15rem; line-height: 1.6; }
+.button { display: inline-block; border: 0; padding: 12px 18px; background: var(--mint); font: inherit; font-weight: 700; text-decoration: none; }
+.list { display: grid; gap: 10px; margin-top: 42px; }
+.list article { display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; padding: 20px; background: var(--card); border: 1px solid var(--line); }
+.list span { color: var(--muted); }
+.form { display: grid; gap: 12px; max-width: 520px; margin-top: 28px; }
+.form input, .form select { border: 1px solid var(--line); padding: 12px; background: var(--card); font: inherit; }
