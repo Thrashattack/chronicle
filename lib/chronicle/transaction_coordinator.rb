@@ -57,6 +57,9 @@ module Chronicle
       end
     end
 
+    alias sqlite postgres
+    alias relational postgres
+
     def read_your_own_write(model_class, finder_attributes = {})
       raise Chronicle::TransactionError, 'No basis-t available for read-your-own-write' unless @basis_t
 

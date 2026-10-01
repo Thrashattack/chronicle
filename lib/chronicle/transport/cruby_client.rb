@@ -14,8 +14,8 @@ module Chronicle
 
       def initialize(config = {})
         super
-        @endpoint = config[:client_endpoint] || config['client_endpoint'] || 'http://localhost:8989'
-        @uri = config[:uri] || config['uri']
+        @endpoint = config[:client_endpoint] || config['client_endpoint'] || ENV.fetch('DATOMIC_CLIENT_ENDPOINT', 'http://localhost:8989')
+        @uri = config[:uri] || config['uri'] || ENV.fetch('DATOMIC_URI', nil)
         @rest = config[:rest] || config['rest']
         @storage_alias, @database_name = parse_datomic_uri(@uri) if @rest
         connection_options = { url: @endpoint }
