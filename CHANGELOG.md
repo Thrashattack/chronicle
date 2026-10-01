@@ -25,6 +25,8 @@
 - Added `news_feed`, a CRuby Rails application that displays story revisions.
 - Added `wallet`, a JRuby Rails application that uses the Datomic Client API to track balance changes.
 - Added `animal_tracker`, a JRuby Rails application that uses the Datomic Peer API to draw historical paths.
+- Added `cross_store`, a CRuby Rails application that references Datomic customer IDs from SQLite purchases.
+- Added a real cross-store benchmark for coordinated Datomic and SQLite writes.
 - Added a Docker Compose stack that installs the Datomic distribution in a container and runs the transactor, peer server, REST service, and all examples.
 
 ### Tooling and Release

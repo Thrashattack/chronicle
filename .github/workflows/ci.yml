@@ -34,7 +34,7 @@ jobs:
           bundler-cache: true
 
       - name: Run RuboCop
-        run: bundle exec rubocop
+        run: bundle exec rubocop --config .rubocop.yml lib spec benchmark Rakefile Gemfile chronicle.gemspec
 
       - name: Download and Start Datomic Transactor & Client HTTP API
         run: |

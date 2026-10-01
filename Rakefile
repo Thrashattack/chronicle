@@ -6,7 +6,7 @@ require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)
 
 task :rubocop do
-  sh 'bundle exec rubocop'
+  sh 'bundle exec rubocop --config .rubocop.yml lib spec benchmark Rakefile Gemfile chronicle.gemspec'
 end
 
 task quality: %i[rubocop spec]

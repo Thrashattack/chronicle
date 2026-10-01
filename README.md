@@ -173,8 +173,9 @@ The repository contains three Rails applications. They are excluded from the pub
 | `news_feed` | CRuby | REST | 3001 | Publish stories and inspect revision history. |
 | `wallet` | JRuby 10 | Client API | 3000 | Record deposits and withdrawals over time. |
 | `animal_tracker` | JRuby 10 | Peer API | 3002 | Record coordinates and draw the historical path on a map. |
+| `cross_store` | CRuby | REST + SQLite | 3003 | Reference a Datomic customer from a SQLite purchase and benchmark coordinated writes. |
 
-The Compose stack downloads and installs Datomic inside the Datomic container. It runs the transactor, peer server, REST service, and all three applications:
+The Compose stack downloads and installs Datomic inside the Datomic container. It runs the transactor, peer server, REST service, and all four applications:
 
 ```bash
 cd examples
@@ -186,8 +187,16 @@ Then open:
 - `http://localhost:3000` for the wallet.
 - `http://localhost:3001` for the news feed.
 - `http://localhost:3002` for the animal tracker.
+- `http://localhost:3003` for the cross-store example.
 
 The Datomic peer server listens on port `8998`. The REST service listens on port `8001`. The transactor uses ports `4334` and `4335`.
+
+Run the cross-store benchmark with:
+
+```bash
+docker compose -f examples/docker-compose.yml exec cross_store \
+  bundle exec ruby benchmark/cross_store_benchmark.rb
+```
 
 ## Development
 
