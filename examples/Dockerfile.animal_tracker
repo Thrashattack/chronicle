@@ -1,4 +1,16 @@
-FROM jruby:10.0.7.0-jdk17
+FROM eclipse-temurin:17-jdk
+
+ARG JRUBY_VERSION=10.0.7.0
+ENV JRUBY_HOME=/opt/jruby
+ENV PATH="${JRUBY_HOME}/bin:${PATH}"
+
+RUN apt-get update \
+  && apt-get install --no-install-recommends -y curl tar \
+  && rm -rf /var/lib/apt/lists/* \
+  && curl -fsSL "https://repo1.maven.org/maven2/org/jruby/jruby-dist/${JRUBY_VERSION}/jruby-dist-${JRUBY_VERSION}-bin.tar.gz" -o /tmp/jruby.tar.gz \
+  && tar -xzf /tmp/jruby.tar.gz -C /opt \
+  && mv "/opt/jruby-dist-${JRUBY_VERSION}" "$JRUBY_HOME" \
+  && rm /tmp/jruby.tar.gz
 
 WORKDIR /app
 COPY . /app
