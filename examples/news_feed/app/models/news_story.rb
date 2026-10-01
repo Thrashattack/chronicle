@@ -1,7 +1,5 @@
-class NewsStory < ApplicationRecord
+class NewsStory < DatomicRecord
   include Chronicle::Model
-
-  connects_to database: { writing: :datomic, reading: :datomic } unless ENV['CHRONICLE_USE_DATOMIC'] == 'false'
 
   datomic_attribute :headline, :string
   datomic_attribute :body, :string

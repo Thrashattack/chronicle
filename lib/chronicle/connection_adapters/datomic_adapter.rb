@@ -32,6 +32,20 @@ module ActiveRecord
         false
       end
 
+      def column_definitions(table_name)
+        model = ActiveRecord::Base.descendants.find { |klass| klass.table_name == table_name.to_s }
+        attributes = model.respond_to?(:datomic_attributes) ? model.datomic_attributes : {}
+        attributes.keys.unshift(:id).uniq.map do |name|
+          ActiveRecord::ConnectionAdapters::Column.new(name.to_s, nil, ActiveRecord::Type::Value.new)
+        end
+      end
+
+      def new_column_from_field(_table_name, field, _definitions)
+        return field if field.is_a?(ActiveRecord::ConnectionAdapters::Column)
+
+        ActiveRecord::ConnectionAdapters::Column.new(field.to_s, nil, ActiveRecord::Type::Value.new)
+      end
+
       # Executes a Datalog query or raw datom query
       def execute(query, name = nil)
         log(query.to_s, name || 'DATOMIC') do

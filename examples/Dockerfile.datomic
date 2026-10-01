@@ -11,9 +11,9 @@ RUN apt-get update \
   && mv "/opt/datomic-pro-${DATOMIC_VERSION}" "$DATOMIC_HOME" \
   && rm /tmp/datomic.zip
 
-COPY datomic/transactor.properties /opt/datomic/config/transactor.properties
+COPY datomic/transactor.properties /opt/chronicle/transactor.properties
 
 VOLUME ["/var/lib/datomic"]
 EXPOSE 4334 4335 8001
 
-CMD ["/bin/sh", "-ec", "exec /opt/datomic/bin/transactor /opt/datomic/config/transactor.properties & until nc -z 127.0.0.1 4334; do sleep 2; done; exec /opt/datomic/bin/rest -p 8001 dev datomic:dev://localhost:4334/"]
+CMD ["/bin/sh", "-ec", "cp /opt/chronicle/transactor.properties /opt/datomic/config/transactor.properties; grep -q '^memory-index-max=' /opt/datomic/config/transactor.properties; exec /opt/datomic/bin/transactor /opt/datomic/config/transactor.properties & until nc -z 127.0.0.1 4334; do sleep 2; done; exec /opt/datomic/bin/rest -p 8001 dev datomic:dev://localhost:4334/"]

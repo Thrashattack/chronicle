@@ -66,6 +66,15 @@ RSpec.describe Chronicle::Datalog::Compiler do
       end
     end
 
+    context 'with Active Record ordering' do
+      it 'fetches ordered attributes so hydrated records can be sorted' do
+        result = described_class.compile(User.order(:name))
+
+        expect(result[:find_vars]).to eq(['?e', '?name'])
+        expect(result[:query]).to include(['?e', :':user/name', '?name'])
+      end
+    end
+
     context 'with time-travel options (as_of / since)' do
       it 'preserves time-travel options on the relation for execution' do
         time = Time.now

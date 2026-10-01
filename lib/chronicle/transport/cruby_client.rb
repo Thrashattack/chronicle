@@ -117,7 +117,7 @@ module Chronicle
           response = @connection.post('/api/query') do |request|
             request.headers['Content-Type'] = 'application/edn'
             request.headers['Accept'] = 'application/edn'
-            request.body = edn(q: query, args: args)
+            request.body = edn(query:, args:)
           end
           raise Chronicle::Error, "Datomic REST query failed: #{response.body}" unless response.success?
 
@@ -135,7 +135,9 @@ module Chronicle
           value.to_s.start_with?(':') ? value.to_s : ":#{value}"
         when String
           value.match?(/\A(?:\?|\$|\.\.\.)/) ? value : JSON.generate(value)
-        when TrueClass, FalseClass, NilClass, Numeric
+        when NilClass
+          'nil'
+        when TrueClass, FalseClass, Numeric
           value.to_s
         else
           JSON.generate(value.to_s)

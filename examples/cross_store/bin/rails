@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+APP_ROOT = File.expand_path("..", __dir__)
+APP_PATH = File.expand_path("../config/application", __dir__)
+Dir.chdir(APP_ROOT) do
+  begin
+    require "bundler/setup"
+  rescue Bundler::GemNotFound => error
+    warn error.message
+    exit 1
+  end
+
+  require File.expand_path("../config/boot", __dir__)
+  require "rails/commands"
+end

@@ -1,7 +1,5 @@
-class WalletAccount < ApplicationRecord
+class WalletAccount < DatomicRecord
   include Chronicle::Model
-
-  connects_to database: { writing: :datomic, reading: :datomic } unless ENV['CHRONICLE_USE_DATOMIC'] == 'false'
 
   self.table_name = "wallets"
 
