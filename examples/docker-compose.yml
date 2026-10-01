@@ -71,6 +71,20 @@ services:
       - "3001:3000"
     command: bundle exec rails server -b 0.0.0.0
 
+  cross_store:
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile.cross_store
+    depends_on:
+      datomic:
+        condition: service_healthy
+    environment:
+      DATOMIC_URI: datomic:dev://datomic:4334/cross-store
+      DATOMIC_CLIENT_ENDPOINT: https://datomic:8001
+    ports:
+      - "3003:3000"
+    command: bundle exec rails server -b 0.0.0.0
+
   animal_tracker:
     build:
       context: ..

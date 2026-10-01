@@ -1,0 +1,10 @@
+FROM ruby:3.4.11-bookworm
+
+WORKDIR /app
+COPY . /app
+WORKDIR /app/examples/cross_store
+
+RUN bundle install
+
+ENV RAILS_ENV=development
+EXPOSE 3000

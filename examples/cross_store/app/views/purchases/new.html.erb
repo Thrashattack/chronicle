@@ -1,0 +1,10 @@
+<main class="shell">
+  <%= link_to "Back to purchases", purchases_path %>
+  <h1>Record a purchase</h1>
+  <%= form_with model: @purchase, class: "form" do |form| %>
+    <%= form.collection_select :customer_id, @customers, :id, :name, { prompt: "Datomic customer" }, required: true %>
+    <%= form.text_field :description, placeholder: "Description", required: true %>
+    <%= form.number_field :amount_cents, placeholder: "Amount in cents", min: 1, required: true %>
+    <%= form.submit "Write both databases", class: "button" %>
+  <% end %>
+</main>

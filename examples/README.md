@@ -5,8 +5,9 @@ Three small Rails applications demonstrate how Chronicle models can keep immutab
 - `news_feed`: publish and update news stories while browsing their revision history.
 - `wallet`: record deposits and withdrawals while inspecting the balance at each point in time.
 - `animal_tracker`: use the JRuby Peer API to record coordinates and draw an animal's historical path.
+- `cross_store`: reference a Datomic customer from a SQLite purchase and benchmark coordinated writes.
 
-The news feed uses CRuby and Datomic REST, the wallet uses JRuby and Datomic Client API, and the animal tracker uses JRuby and Datomic Peer API. The shared Compose stack installs the official Datomic distribution inside its container and runs the transactor, peer server, REST service, and all three apps.
+The news feed and cross-store examples use CRuby and Datomic REST. The wallet uses JRuby and Datomic Client API. The animal tracker uses JRuby and Datomic Peer API. The shared Compose stack installs the official Datomic distribution inside its container and runs the transactor, peer server, REST service, and all four apps.
 
 ## Start Datomic
 
@@ -37,4 +38,4 @@ The wallet is the JRuby example and should be run through Compose so it can load
 docker compose -f examples/docker-compose.yml up --build
 ```
 
-The centralized services are available at `http://localhost:3001` (news feed), `http://localhost:3000` (wallet), and `http://localhost:3002` (animal tracker).
+The centralized services are available at `http://localhost:3000` (wallet), `http://localhost:3001` (news feed), `http://localhost:3002` (animal tracker), and `http://localhost:3003` (cross-store). Run the cross-store benchmark with `docker compose exec cross_store bundle exec ruby benchmark/cross_store_benchmark.rb`.
