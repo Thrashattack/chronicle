@@ -1,0 +1,13 @@
+# frozen_string_literal: true
+
+class <%= migration_class_name %> < ActiveRecord::Migration[8.0]
+  def change
+    create_datomic_schema :<%= entity_name %> do |t|
+<% attributes.each do |attr_str| -%>
+<% attr = parse_attribute(attr_str) -%>
+      t.<%= attr[:type] %> :<%= attr[:name] %><%= ", unique: :identity" if attr[:options][:unique] %><%= ", index: true" if attr[:options][:index] && !attr[:options][:unique] %>
+<% end -%>
+      t.timestamps
+    end
+  end
+end
