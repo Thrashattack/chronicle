@@ -7,18 +7,14 @@ module Chronicle
 
       def initialize(config = {})
         super
-        @uri = config[:uri] || config["uri"]
+        @uri = config[:uri] || config['uri']
       end
 
       def connect!
-        unless Chronicle::Transport.jruby? || ENV["SPEC_ALLOW_JRUBY_MOCK"]
-          raise Chronicle::Error, "JRubyPeer transport can only be run under JRuby"
-        end
+        raise Chronicle::Error, 'JRubyPeer transport can only be run under JRuby' unless Chronicle::Transport.jruby? || ENV['SPEC_ALLOW_JRUBY_MOCK']
 
         Chronicle::Resilience.with_retry do
-          if defined?(Java::Datomic::Peer)
-            @peer_connection = Java::Datomic::Peer.connect(@uri)
-          end
+          @peer_connection = Java::Datomic::Peer.connect(@uri) if defined?(Java::Datomic::Peer)
           @connected = true
         end
       end
@@ -28,11 +24,16 @@ module Chronicle
           if @peer_connection.respond_to?(:transact)
             future = @peer_connection.transact(tx_data)
             tx_map = future.get
-            @current_basis_t = tx_map.get(Java::Datomic::Peer::BASIS_T) rescue Time.now.to_i
-            { db_before: tx_map.get(Java::Datomic::Peer::DB_BEFORE), db_after: tx_map.get(Java::Datomic::Peer::DB_AFTER), tx_data: tx_data, basis_t: @current_basis_t }
+            @current_basis_t = begin
+              tx_map.get(Java::Datomic::Peer::BASIS_T)
+            rescue StandardError
+              Time.now.to_i
+            end
+            { db_before: tx_map.get(Java::Datomic::Peer::DB_BEFORE),
+              db_after: tx_map.get(Java::Datomic::Peer::DB_AFTER), tx_data:, basis_t: @current_basis_t }
           else
             @current_basis_t = Time.now.to_i
-            { db_before: "db_before_ref", db_after: "db_after_ref", tx_data: tx_data, basis_t: @current_basis_t }
+            { db_before: 'db_before_ref', db_after: 'db_after_ref', tx_data:, basis_t: @current_basis_t }
           end
         end
       end
@@ -55,7 +56,7 @@ module Chronicle
           db_ref = db_ref.since(since) if since && db_ref.respond_to?(:since)
           db_ref
         else
-          { uri: @uri, as_of: as_of, since: since }
+          { uri: @uri, as_of:, since: }
         end
       end
 

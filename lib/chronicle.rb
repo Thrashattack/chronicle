@@ -1,23 +1,21 @@
 # frozen_string_literal: true
 
-require "active_record"
-require "active_support/all"
+require 'active_record'
+require 'active_support/all'
 
-require_relative "chronicle/version"
-require_relative "chronicle/resilience"
-require_relative "chronicle/transport"
-require_relative "chronicle/connection_adapters/datomic_adapter"
-require_relative "chronicle/datalog/compiler"
-require_relative "chronicle/datalog/optimizer"
-require_relative "chronicle/relation"
-require_relative "chronicle/hydrator"
-require_relative "chronicle/model"
-require_relative "chronicle/schema"
-require_relative "chronicle/transaction_coordinator"
+require_relative 'chronicle/version'
+require_relative 'chronicle/resilience'
+require_relative 'chronicle/transport'
+require_relative 'chronicle/connection_adapters/datomic_adapter'
+require_relative 'chronicle/datalog/compiler'
+require_relative 'chronicle/datalog/optimizer'
+require_relative 'chronicle/relation'
+require_relative 'chronicle/hydrator'
+require_relative 'chronicle/model'
+require_relative 'chronicle/schema'
+require_relative 'chronicle/transaction_coordinator'
 
-if defined?(Rails::Railtie)
-  require_relative "chronicle/railtie"
-end
+require_relative 'chronicle/railtie' if defined?(Rails::Railtie)
 
 module Chronicle
   class Error < StandardError; end

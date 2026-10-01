@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mutex_m"
+require 'mutex_m'
 
 module Chronicle
   module Resilience
@@ -95,32 +95,38 @@ module Chronicle
       end
 
       def with_retry(max_retries: nil, base_delay: nil, max_delay: nil, circuit_breaker: nil)
-        cb = circuit_breaker || global_circuit_breaker
+        nested_retry = Thread.current[:chronicle_retry_depth].to_i.positive?
+        cb = circuit_breaker || (nested_retry ? CircuitBreaker.new : global_circuit_breaker)
         config = Chronicle.configuration
 
         retries = max_retries || (config ? config.max_retries : 5)
         delay   = base_delay   || (config ? config.retry_base_delay : 0.1)
         max_d   = max_delay    || (config ? config.retry_max_delay : 2.0)
 
-        cb.check_state!
-
-        attempt = 0
         begin
-          attempt += 1
-          result = yield
-          cb.record_success
-          result
-        rescue StandardError => e
-          if retryable?(e)
-            cb.record_failure
-            if attempt <= retries
-              sleep_time = [delay * (2**(attempt - 1)), max_d].min
-              jitter = rand(0.0..0.1) * sleep_time
-              sleep_backoff(sleep_time + jitter)
-              retry
+          Thread.current[:chronicle_retry_depth] = Thread.current[:chronicle_retry_depth].to_i + 1
+          cb.check_state!
+
+          attempt = 0
+          begin
+            attempt += 1
+            result = yield
+            cb.record_success
+            result
+          rescue StandardError => e
+            if retryable?(e)
+              cb.record_failure
+              if attempt <= retries
+                sleep_time = [delay * (2**(attempt - 1)), max_d].min
+                jitter = rand(0.0..0.1) * sleep_time
+                sleep_backoff(sleep_time + jitter)
+                retry
+              end
             end
+            raise e
           end
-          raise e
+        ensure
+          Thread.current[:chronicle_retry_depth] -= 1
         end
       end
 

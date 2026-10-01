@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/string/inflections"
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/inflections'
 
 module Chronicle
   class Hydrator
@@ -16,11 +16,9 @@ module Chronicle
       def hydrate(klass, raw_results, compiled_meta = {})
         return [] if raw_results.blank?
 
-        if compiled_meta[:pluck]
-          return hydrate_pluck(raw_results, compiled_meta)
-        end
+        return hydrate_pluck(raw_results, compiled_meta) if compiled_meta[:pluck]
 
-        find_vars = compiled_meta[:find_vars] || ["?e"]
+        find_vars = compiled_meta[:find_vars] || ['?e']
 
         raw_results.map do |row|
           attributes, associations = extract_attributes_and_associations(klass, row, find_vars)
@@ -54,6 +52,11 @@ module Chronicle
             if val.is_a?(Hash) || (val.is_a?(Array) && val.first.is_a?(Hash))
               # Nested entity reference (association)
               associations[clean_key] = val
+              reflection = klass.reflect_on_association(clean_key.to_sym) if klass.respond_to?(:reflect_on_association)
+              if reflection.respond_to?(:foreign_key) && val.is_a?(Hash)
+                child_id = val[':db/id'] || val['db/id'] || val['id']
+                attributes[reflection.foreign_key] = child_id if child_id
+              end
             else
               attributes[clean_key] = val
             end
@@ -61,9 +64,9 @@ module Chronicle
         elsif row.is_a?(Array)
           # Tuple result corresponding to find_vars
           find_vars.each_with_index do |var_name, idx|
-            attr_name = var_name.to_s.sub(/^\?/, "")
-            if attr_name == "e"
-              attributes["id"] = row[idx]
+            attr_name = var_name.to_s.sub(/^\?/, '')
+            if attr_name == 'e'
+              attributes['id'] = row[idx]
             else
               val = row[idx]
               if val.is_a?(Hash) || (val.is_a?(Array) && val.first.is_a?(Hash))
@@ -75,20 +78,20 @@ module Chronicle
           end
         else
           # Single scalar (e.g. entity ID integer)
-          attributes["id"] = row
+          attributes['id'] = row
         end
 
         [attributes, associations]
       end
 
-      def normalize_key(key, klass)
-        str_key = key.to_s.sub(/^:/, "")
+      def normalize_key(key, _klass)
+        str_key = key.to_s.sub(/^:/, '')
 
-        if str_key == "db/id" || str_key == "id"
-          "id"
-        elsif str_key.include?("/")
+        if ['db/id', 'id'].include?(str_key)
+          'id'
+        elsif str_key.include?('/')
           # Namespace attribute like "user/name" -> "name"
-          parts = str_key.split("/")
+          parts = str_key.split('/')
           parts.last
         else
           str_key
@@ -101,26 +104,23 @@ module Chronicle
         if klass.respond_to?(:instantiate)
           record = klass.instantiate(string_attributes)
           ensure_dirty_tracking_clean(record)
-          record
         else
           record = klass.allocate
           if record.respond_to?(:init_with)
-            record.init_with("attributes" => string_attributes, "new_record" => false)
+            record.init_with('attributes' => string_attributes, 'new_record' => false)
           else
             string_attributes.each do |k, v|
               setter = "#{k}="
               record.public_send(setter, v) if record.respond_to?(setter)
             end
           end
-          record
         end
+        record
       end
 
       def hydrate_associations(record, associations)
         associations.each do |assoc_name, val|
-          reflection = if record.class.respond_to?(:reflect_on_association)
-                         record.class.reflect_on_association(assoc_name.to_sym)
-                       end
+          reflection = (record.class.reflect_on_association(assoc_name.to_sym) if record.class.respond_to?(:reflect_on_association))
 
           target_klass = reflection ? reflection.klass : assoc_name.to_s.classify.safe_constantize
 
@@ -138,13 +138,16 @@ module Chronicle
 
       def set_association_target(record, reflection, assoc_name, target, is_collection:)
         if reflection && record.respond_to?(:association)
+          if !is_collection && reflection.respond_to?(:foreign_key) && target.respond_to?(:id)
+            foreign_key = reflection.foreign_key
+            record._write_attribute(foreign_key, target.id) if record.has_attribute?(foreign_key)
+          end
+
           assoc = record.association(reflection.name)
           assoc.target = target
           assoc.loaded!
-        else
-          # Fallback instance variable for plain objects
-          record.instance_variable_set("@#{assoc_name}", target)
         end
+        record.instance_variable_set("@#{assoc_name}", target)
       end
 
       def ensure_dirty_tracking_clean(record)

@@ -1,13 +1,8 @@
 # frozen_string_literal: true
 
 module Chronicle
-  class Relation < ActiveRecord::Relation
+  module Relation
     attr_accessor :time_travel_options
-
-    def initialize(klass, table: klass.table_name, predicate_builder: klass.predicate_builder, values: {})
-      super
-      @time_travel_options = {}
-    end
 
     def as_of(timestamp_or_tx)
       spawn.tap do |r|

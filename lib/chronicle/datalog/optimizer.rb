@@ -36,8 +36,8 @@ module Chronicle
 
         {
           query: optimized_query,
-          bindings: bindings,
-          find_vars: find_vars,
+          bindings:,
+          find_vars:,
           optimized: true
         }
       end
@@ -53,8 +53,6 @@ module Chronicle
           if c.is_a?(Array) && c.first.is_a?(Array)
             # Predicate expression like [[:>, "?var_age", 21]] or [[":!=", ...]]
             predicates << c
-          elsif c.is_a?(Array) && c.length == 3 && c.first == "?e"
-            patterns << c
           else
             patterns << c
           end
@@ -75,9 +73,9 @@ module Chronicle
       end
 
       def unique_or_indexed_attribute?(attr_sym)
-        return false unless model && model.respond_to?(:datomic_attributes)
+        return false unless model.respond_to?(:datomic_attributes)
 
-        attr_name = attr_sym.to_s.split("/").last&.to_sym
+        attr_name = attr_sym.to_s.split('/').last&.to_sym
         return false unless attr_name
 
         meta = model.datomic_attributes[attr_name]

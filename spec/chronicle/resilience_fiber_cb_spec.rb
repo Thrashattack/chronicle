@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-require "faraday"
+require 'spec_helper'
+require 'faraday'
 
-RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
+RSpec.describe 'Chronicle::Resilience with Fibers & Circuit Breaker' do
   let(:cb) { Chronicle::Resilience::CircuitBreaker.new(threshold: 3, cooldown: 0.5) }
 
   before do
@@ -19,30 +19,30 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
   end
 
   describe Chronicle::Resilience::CircuitBreaker do
-    it "starts in :closed state with 0 failures" do
+    it 'starts in :closed state with 0 failures' do
       expect(cb.state).to eq(:closed)
       expect(cb.failure_count).to eq(0)
     end
 
-    it "transitions to :open when failure count reaches threshold" do
+    it 'transitions to :open when failure count reaches threshold' do
       3.times { cb.record_failure }
       expect(cb.state).to eq(:open)
       expect(cb.opened_at).not_to be_nil
     end
 
-    it "raises Chronicle::CircuitBreakerError when in :open state" do
+    it 'raises Chronicle::CircuitBreakerError when in :open state' do
       cb.force_open!
       expect { cb.check_state! }.to raise_error(Chronicle::CircuitBreakerError, /Circuit breaker is OPEN/)
     end
 
-    it "transitions to :half_open after cooldown duration expires" do
+    it 'transitions to :half_open after cooldown duration expires' do
       cb.force_open!
       sleep 0.6 # Exceed 0.5s cooldown
       cb.check_state!
       expect(cb.state).to eq(:half_open)
     end
 
-    it "resets to :closed upon recording a success from :half_open" do
+    it 'resets to :closed upon recording a success from :half_open' do
       cb.force_open!
       sleep 0.6
       cb.check_state! # Transitions to half_open
@@ -51,7 +51,7 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
       expect(cb.failure_count).to eq(0)
     end
 
-    it "re-opens immediately if a failure occurs in :half_open state" do
+    it 're-opens immediately if a failure occurs in :half_open state' do
       cb.force_open!
       sleep 0.6
       cb.check_state! # half_open
@@ -60,9 +60,9 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
     end
   end
 
-  describe "Fiber-aware Non-Blocking Sleep" do
-    it "uses Fiber.scheduler.kernel_sleep when a Fiber scheduler is active" do
-      fake_scheduler = double("FiberScheduler")
+  describe 'Fiber-aware Non-Blocking Sleep' do
+    it 'uses Fiber.scheduler.kernel_sleep when a Fiber scheduler is active' do
+      fake_scheduler = double('FiberScheduler')
       expect(fake_scheduler).to receive(:kernel_sleep).at_least(:once)
 
       allow(Fiber).to receive(:scheduler).and_return(fake_scheduler)
@@ -71,18 +71,19 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
       expect do
         Chronicle::Resilience.with_retry(max_retries: 1, base_delay: 0.01, circuit_breaker: cb) do
           attempts += 1
-          raise Chronicle::ConnectionError, "Transient socket fail" if attempts == 1
-          "success"
+          raise Chronicle::ConnectionError, 'Transient socket fail' if attempts == 1
+
+          'success'
         end
       end.not_to raise_error
     end
   end
 
-  describe "Integration with CRubyClient Faraday HTTP requests" do
+  describe 'Integration with CRubyClient Faraday HTTP requests' do
     let(:client) do
       Chronicle::Transport::CRubyClient.new(
-        client_endpoint: "http://localhost:8989",
-        uri: "datomic:dev://localhost:4334/test"
+        client_endpoint: 'http://localhost:8989',
+        uri: 'datomic:dev://localhost:4334/test'
       )
     end
     let(:stubs) { Faraday::Adapter::Test::Stubs.new }
@@ -93,15 +94,15 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
 
     after { stubs.verify_stubbed_calls }
 
-    it "trips circuit breaker on repeated Faraday connection failures and fails fast" do
-      stubs.post("/api/transact") { [500, {}, { error: "Transactor down" }.to_json] }
+    it 'trips circuit breaker on repeated Faraday connection failures and fails fast' do
+      stubs.post('/api/transact') { [500, {}, { error: 'Transactor down' }.to_json] }
 
       custom_cb = Chronicle::Resilience::CircuitBreaker.new(threshold: 2, cooldown: 1.0)
 
       # Attempt 1 -> fails after retries -> records failures
       expect do
         Chronicle::Resilience.with_retry(max_retries: 1, base_delay: 0.001, circuit_breaker: custom_cb) do
-          client.transact([[:db/add, 1, :user/name, "Test"]])
+          client.transact([[':db/add', 1, ':user/name', 'Test']])
         end
       end.to raise_error(Chronicle::TransactionError)
 
@@ -111,7 +112,7 @@ RSpec.describe "Chronicle::Resilience with Fibers & Circuit Breaker" do
       # Subsequent call fails fast without HTTP request
       expect do
         Chronicle::Resilience.with_retry(circuit_breaker: custom_cb) do
-          client.transact([[:db/add, 2, :user/name, "Fast Fail"]])
+          client.transact([[':db/add', 2, ':user/name', 'Fast Fail']])
         end
       end.to raise_error(Chronicle::CircuitBreakerError, /Circuit breaker is OPEN/)
     end
