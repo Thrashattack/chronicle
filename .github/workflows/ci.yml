@@ -1,0 +1,68 @@
+name: CI & Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: RSpec (${{ matrix.ruby-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - '3.2'
+          - '3.3'
+          - '3.4'
+          - 'jruby-9.4'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK (Datomic & JRuby support)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Download and Start Datomic Transactor & Client HTTP API
+        run: |
+          echo "Installing Datomic Transactor for integration testing..."
+          wget -q https://datomic-downloads.s3.amazonaws.com/1.0.7072/datomic-free-1.0.7072.zip || true
+          if [ -f "datomic-free-1.0.7072.zip" ]; then
+            unzip -q datomic-free-1.0.7072.zip
+            cd datomic-free-1.0.7072
+            cp config/samples/free-transactor-template.properties config/transactor.properties
+            bin/transactor config/transactor.properties &
+            sleep 3
+            echo "Datomic Transactor started successfully on port 4334"
+          else
+            echo "Datomic Free zip unavailable, running with mock transactor transport suite"
+          fi
+
+      - name: Run RSpec Tests
+        env:
+          RAILS_ENV: test
+          DATOMIC_URI: datomic:free://localhost:4334/chronicle_test
+          DATOMIC_CLIENT_ENDPOINT: http://localhost:8989
+          SPEC_ALLOW_JRUBY_MOCK: "true"
+        run: |
+          bundle exec rspec
+
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.ruby-version }}
+          path: coverage/
+          if-no-files-found: ignore
