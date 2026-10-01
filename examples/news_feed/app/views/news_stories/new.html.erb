@@ -1,0 +1,7 @@
+<% content_for :title, 'Publish a story' %>
+
+<main class="form-shell">
+  <%= link_to 'Back to feed', news_stories_path, class: 'text-link' %>
+  <h1>Publish a story</h1>
+  <%= render 'form', news_story: @news_story, submit_label: 'Publish story' %>
+</main>

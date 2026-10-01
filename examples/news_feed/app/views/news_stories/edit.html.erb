@@ -1,0 +1,8 @@
+<% content_for :title, 'Update story' %>
+
+<main class="form-shell">
+  <%= link_to 'Back to story', @news_story, class: 'text-link' %>
+  <h1>Update story</h1>
+  <p class="muted">Saving creates a new immutable revision in the story history.</p>
+  <%= render 'form', news_story: @news_story, submit_label: 'Save update' %>
+</main>
