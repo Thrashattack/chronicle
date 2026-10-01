@@ -10,7 +10,7 @@ RSpec.describe Chronicle::Datalog::Optimizer do
       compiled = Chronicle::Datalog::Compiler.compile(rel)
 
       optimized = described_class.optimize(compiled, User)
-      where_clause = optimized[:query][optimized[:query].index(:where) + 1..]
+      where_clause = optimized[:query][(optimized[:query].index(:where) + 1)..]
 
       # Unique attribute :user/email should appear before the greater_than predicate expression
       email_pattern_idx = where_clause.index { |pat| pat.is_a?(Array) && pat[1] == :':user/email' }
@@ -27,7 +27,7 @@ RSpec.describe Chronicle::Datalog::Optimizer do
       }
 
       optimized = described_class.optimize(compiled_query, User)
-      where_clause = optimized[:query][optimized[:query].index(:where) + 1..]
+      where_clause = optimized[:query][(optimized[:query].index(:where) + 1)..]
 
       # Triple pattern should precede function predicate
       expect(where_clause.first).to eq(['?e', :':user/name', '?param_1'])

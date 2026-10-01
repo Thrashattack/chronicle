@@ -1,0 +1,44 @@
+<% content_for :title, @animal.name %>
+
+<main class="content-shell detail-shell">
+  <%= link_to "Back to animals", animals_path, class: "text-link" %>
+  <div class="detail-heading">
+    <div><p class="eyebrow"><%= @animal.species %></p><h1><%= @animal.name %></h1></div>
+    <% if @latest %><div class="latest"><span>Latest position</span><strong><%= format("%.4f, %.4f", @latest.latitude, @latest.longitude) %></strong></div><% end %>
+  </div>
+
+  <section class="map-panel">
+    <div id="map" data-points='<%= @locations.map { |location| { latitude: location.latitude, longitude: location.longitude, recorded_at: location.recorded_at.iso8601 } }.to_json %>'></div>
+  </section>
+
+  <section class="position-panel">
+    <div class="section-heading"><h2>Record a position</h2><span><%= pluralize(@locations.size, "point") %> in history</span></div>
+    <%= form_with model: AnimalLocation.new, url: locations_animal_path(@animal), class: "position-form" do |form| %>
+      <%= form.number_field :latitude, step: "any", min: -90, max: 90, placeholder: "Latitude", required: true %>
+      <%= form.number_field :longitude, step: "any", min: -180, max: 180, placeholder: "Longitude", required: true %>
+      <%= form.submit "Record point", class: "button button-primary" %>
+    <% end %>
+  </section>
+
+  <section class="history-panel">
+    <div class="section-heading"><h2>Path history</h2><span>Oldest to newest</span></div>
+    <ol class="timeline">
+      <% @locations.reverse_each.with_index do |location, index| %>
+        <li><span class="timeline-number"><%= @locations.size - index %></span><div><time><%= l location.recorded_at, format: :long %></time><strong><%= format("%.5f, %.5f", location.latitude, location.longitude) %></strong></div></li>
+      <% end %>
+    </ol>
+  </section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const mapElement = document.getElementById("map");
+  const points = JSON.parse(mapElement.dataset.points);
+  const map = L.map(mapElement).setView(points.length ? [points[0].latitude, points[0].longitude] : [0, 0], points.length ? 11 : 2);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+  if (points.length) {
+    const coordinates = points.map((point) => [point.latitude, point.longitude]);
+    L.polyline(coordinates, { color: "#e8754f", weight: 4 }).addTo(map);
+    coordinates.forEach((coordinate, index) => L.circleMarker(coordinate, { radius: index === coordinates.length - 1 ? 8 : 5, color: "#17211b", fillColor: "#b8e6c1", fillOpacity: 1 }).bindPopup(points[index].recorded_at).addTo(map));
+    map.fitBounds(coordinates, { padding: [24, 24] });
+  }
+</script>

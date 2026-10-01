@@ -1,0 +1,12 @@
+FROM jruby:10.0.7.0-jdk17
+
+WORKDIR /app
+COPY . /app
+WORKDIR /app/examples/wallet
+
+RUN bundle install
+
+ENV RAILS_ENV=development
+ENV BUNDLE_WITHOUT=development:test
+
+EXPOSE 3000

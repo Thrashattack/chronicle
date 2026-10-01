@@ -1,0 +1,10 @@
+FROM jruby:10.0.7.0-jdk17
+
+WORKDIR /app
+COPY . /app
+WORKDIR /app/examples/animal_tracker
+
+RUN bundle install
+
+ENV RAILS_ENV=development
+EXPOSE 3000

@@ -1,71 +1,104 @@
 # Chronicle
 
-Chronicle connects the Datomic database to Ruby on Rails Active Record. It works with both CRuby and JRuby.
+[![CI](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml/badge.svg)](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/Thrashattack/chronicle/branch/main/graph/badge.svg)](https://codecov.io/gh/Thrashattack/chronicle)
+[![Gem Version](https://img.shields.io/gem/v/chronicle.svg)](https://rubygems.org/gems/chronicle)
+[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.4.5-CC342D.svg)](https://www.ruby-lang.org/)
 
-## Features
+Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record models to Datomic facts and exposes immutable history through normal Rails query patterns.
 
-- **Active Record Integration**: Maps Active Record models, attributes, and associations to Datomic facts (`datoms`).
-- **Runtime Transport Auto-Detection**: Uses Java Peer interop on JRuby and the HTTP Client API on CRuby.
-- **Time-Travel Queries**: Queries past database states using `.as_of` and `.since`.
-- **Cross-Database Transactions**: Coordinates transactions across Datomic and PostgreSQL with automatic compensating retractions.
-- **Resilience & Circuit Breaker**: Retries failed calls with non-blocking Fiber delays and stops cascading failures with a circuit breaker.
-- **Rails Tooling**: Includes migration and initializer generators.
+## Requirements
+
+- Ruby 3.4.5 or newer.
+- Rails Active Record 7.0 or newer.
+- Datomic Pro for the Docker examples and JRuby integrations.
+- Java 17 for Datomic and JRuby workloads.
+
+## Capabilities
+
+- Active Record integration through `Chronicle::Model`.
+- Datomic attributes with types and schema options.
+- Datalog compilation for equality, comparison, `IN`, projection, and pull queries.
+- Association preloading through Datomic pull results.
+- Time travel with `.as_of` and `.since`.
+- Datomic schema and migration helpers.
+- Cross-database transactions with compensating Datomic retractions.
+- Retry handling with exponential backoff and jitter.
+- Circuit breaker support.
+- Fiber-aware backoff when a Ruby scheduler is active.
+- CRuby transport through Datomic REST using EDN.
+- JRuby Client API transport through a Datomic peer server.
+- JRuby Peer API transport with direct access to the Datomic transactor.
+- Rails initializer and migration generators.
 
 ## Installation
 
-Add this line to your `Gemfile`:
+Add Chronicle to the application Gemfile:
 
 ```ruby
-gem "chronicle", github: "Thrashattack/chronicle"
+gem "chronicle"
 ```
 
-Then run:
+Then install the bundle:
 
 ```bash
 bundle install
 ```
 
-## Setup
+## Configuration
 
-### 1. Database Configuration (`config/database.yml`)
-
-```yaml
-development:
-  primary:
-    adapter: postgresql
-    database: app_development
-  datomic:
-    adapter: datomic
-    uri: datomic:dev://localhost:4334/chronicle_dev
-    client_endpoint: http://localhost:8989
-```
-
-### 2. Initializer Generator
-
-Run the initializer generator:
+Generate an initializer:
 
 ```bash
-rails generate chronicle:initializer
+bin/rails generate chronicle:initializer
 ```
 
-This creates `config/initializers/chronicle.rb`:
+Configure a Datomic connection in `config/database.yml`.
 
-```ruby
-Chronicle.configure do |config|
-  config.uri = ENV.fetch("DATOMIC_URI", "datomic:dev://localhost:4334/app_dev")
-  
-  if RUBY_ENGINE != "jruby"
-    config.client_endpoint = ENV.fetch("DATOMIC_CLIENT_ENDPOINT", "http://localhost:8989")
-  end
+### CRuby and REST
 
-  config.max_retries = 5
-end
+Chronicle's CRuby transport uses Datomic's REST service. Datomic marks REST as a legacy interface, but it remains useful for existing integrations and supports the Ruby transport.
+
+```yaml
+datomic:
+  adapter: datomic
+  uri: datomic:dev://localhost:4334/app_dev
+  client_endpoint: https://localhost:8001
+  rest: true
 ```
 
-### 3. Model Definition
+### JRuby Client API
+
+The Client API connects to a Datomic peer server. It requires the peer-server endpoint, access key, secret, and database name.
+
+```yaml
+datomic:
+  adapter: datomic
+  uri: datomic:dev://localhost:4334/app_dev
+  client_endpoint: localhost:8998
+  access_key: chronicle-dev
+  secret: chronicle-dev-secret
+```
+
+### JRuby Peer API
+
+The Peer API connects directly to the transactor. Select it with `transport: peer`.
+
+```yaml
+datomic:
+  adapter: datomic
+  uri: datomic:dev://localhost:4334/app_dev
+  transport: peer
+```
+
+The application must load the Datomic distribution jars. The included Compose examples mount them at `/opt/datomic`.
+
+## Model Integration
+
+Include `Chronicle::Model` and declare the attributes stored in Datomic:
 
 ```ruby
-class HistoricalRecord < ActiveRecord::Base
+class HistoricalRecord < ApplicationRecord
   include Chronicle::Model
 
   connects_to database: { writing: :datomic, reading: :datomic }
@@ -76,89 +109,119 @@ class HistoricalRecord < ActiveRecord::Base
 end
 ```
 
-## Migrations
+`Chronicle::Model` also provides `to_datoms`, `datomic_entity_id`, and model-level `.as_of` and `.since` query entry points.
 
-Generate a migration file:
+## Schema and Migrations
+
+Generate a Datomic migration:
 
 ```bash
-rails generate chronicle:migration create_historical_records event_name:string user_id:integer:index
+bin/rails generate chronicle:migration create_historical_records \
+  event_name:string user_id:integer:index
 ```
 
-This creates a migration file:
+A generated migration uses the Chronicle table definition:
 
 ```ruby
-class CreateHistoricalRecords < ActiveRecord::Migration[8.0]
+class CreateHistoricalRecords < ActiveRecord::Migration[8.1]
   def change
-    create_datomic_schema :historical_record do |t|
-      t.string  :event_name
-      t.integer :user_id, index: true
-      t.timestamps
+    create_datomic_schema :historical_record do |table|
+      table.string :event_name
+      table.integer :user_id, index: true
+      table.timestamps
     end
   end
 end
 ```
 
-Run migrations:
+Run it with:
 
 ```bash
 bin/rails db:migrate
 ```
 
-## Time-Travel Queries
+## Time Travel
 
-Datomic stores facts immutably. Query historical states using `as_of` and `since`:
+Datomic never overwrites a fact. Each transaction produces a new database value and a transaction time. Chronicle exposes that history through relation scopes:
 
 ```ruby
-# Query data as it existed 2 hours ago
-past_record = HistoricalRecord.as_of(2.hours.ago).find_by(user_id: 42)
-
-# Query data recorded since a transaction ID
-new_records = HistoricalRecord.since(10040).where(event_name: "login")
+past = HistoricalRecord.as_of(2.hours.ago).where(user_id: 42)
+recent = HistoricalRecord.since(10040).where(event_name: "login")
 ```
+
+The transport applies `as_of` and `since` to the Datomic database snapshot before it executes the query.
 
 ## Cross-Database Transactions
 
-Use `Chronicle::TransactionCoordinator` to write across Datomic and PostgreSQL in one step:
+`Chronicle::TransactionCoordinator` coordinates a Datomic write and a relational write. If the relational operation fails, it sends compensating retractions to Datomic and raises `Chronicle::TransactionError`.
 
 ```ruby
-Chronicle::TransactionCoordinator.transaction do |tx|
-  # 1. Write fact to Datomic
-  tx.datomic(record.to_datoms)
-
-  # 2. Write pointer to PostgreSQL
-  tx.postgres do
-    AuditLog.create!(
-      user_id: 42,
-      datomic_basis_t: tx.basis_t
-    )
+Chronicle::TransactionCoordinator.transaction do |transaction|
+  transaction.datomic(record.to_datoms)
+  transaction.postgres do
+    AuditLog.create!(datomic_basis_t: transaction.basis_t)
   end
 end
 ```
 
-If the PostgreSQL write fails, Chronicle retracts the Datomic write automatically and raises an error.
+## Examples
 
-## Running Tests
+The repository contains three Rails applications. They are excluded from the published gem.
 
-Run the RSpec test suite:
+| Example | Ruby | Datomic API | Port | Purpose |
+| --- | --- | --- | ---: | --- |
+| `news_feed` | CRuby | REST | 3001 | Publish stories and inspect revision history. |
+| `wallet` | JRuby 10 | Client API | 3000 | Record deposits and withdrawals over time. |
+| `animal_tracker` | JRuby 10 | Peer API | 3002 | Record coordinates and draw the historical path on a map. |
+
+The Compose stack downloads and installs Datomic inside the Datomic container. It runs the transactor, peer server, REST service, and all three applications:
 
 ```bash
-bundle exec rspec
+cd examples
+docker compose up --build
 ```
 
-Run the full pre-commit validation manually:
+Then open:
+
+- `http://localhost:3000` for the wallet.
+- `http://localhost:3001` for the news feed.
+- `http://localhost:3002` for the animal tracker.
+
+The Datomic peer server listens on port `8998`. The REST service listens on port `8001`. The transactor uses ports `4334` and `4335`.
+
+## Development
+
+Run the full local validation:
 
 ```bash
 bundle exec rake quality
 ```
 
-Enable the tracked Git hook once per checkout:
+This runs RuboCop and RSpec. The tracked pre-commit hook runs the same checks:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Commits are rejected if RuboCop or RSpec fails.
+The CI workflow runs RuboCop, RSpec, and uploads SimpleCov results to Codecov.
+
+## Release Contents
+
+The gem contains only `lib/`, `README.md`, `CHANGELOG.md`, and `LICENSE.txt`. It excludes specs, CI configuration, examples, the Gemfile, the Rakefile, and the gemspec.
+
+Build the package with:
+
+```bash
+gem build chronicle.gemspec
+```
+
+## Support Notes
+
+- The CRuby REST transport and the JRuby Client API transport use different Datomic endpoints.
+- The JRuby Peer API requires the Datomic distribution jars and a JVM.
+- The Docker examples use Datomic Pro distribution downloads. Review Datomic licensing and distribution terms before use.
+- JRuby and Datomic containers are not required to run the CRuby unit test suite.
 
 ## License
 
-Chronicle is available as open source under the terms of the MIT License.
+Chronicle is available under the MIT License.

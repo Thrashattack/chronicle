@@ -1,0 +1,44 @@
+/*
+ * This is a manifest file that'll be compiled into application.css.
+ *
+ * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
+ * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
+ * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
+ * depending on specificity.
+ *
+ * Consider organizing styles into separate files for maintainability.
+ */
+
+:root { --ink: #18212b; --muted: #68727d; --paper: #edf2f5; --card: #ffffff; --blue: #b8d8f5; --green: #b7e2c2; --red: #f1b4a8; --line: #d5dee5; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, serif; }
+h1, h2, h3 { font-family: Georgia, serif; }
+a { color: inherit; }
+.hero, .wallet-shell, .form-shell { width: min(960px, calc(100% - 40px)); margin: auto; }
+.hero { padding: 88px 0 58px; }
+.eyebrow, .section-heading span, time { color: var(--muted); font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; }
+h1 { margin: 10px 0 18px; font-size: clamp(2.6rem, 7vw, 5.4rem); line-height: .98; }
+.hero p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: 1.15rem; line-height: 1.6; }
+.button { border: 0; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+.button-primary { color: var(--ink); background: var(--green); }
+.button-secondary { color: var(--ink); background: var(--blue); }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid var(--ink); }
+.wallet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; padding: 22px 0 70px; }
+.wallet-card, .balance-hero, .entry-panel, .history-panel, .form-shell { background: var(--card); border: 1px solid var(--line); }
+.wallet-card { display: grid; gap: 14px; padding: 24px; text-decoration: none; }
+.wallet-card strong { font-size: 2.5rem; }
+.wallet-card span:last-child, .empty-state, .balance-hero p:last-child { color: var(--muted); }
+.text-link { font-weight: 700; text-underline-offset: 4px; }
+.wallet-shell, .form-shell { padding: 48px 0 80px; }
+.balance-hero, .entry-panel, .history-panel { padding: 32px; margin-top: 18px; }
+.balance-hero h1 { font-size: clamp(3.5rem, 10vw, 7rem); }
+.entry-form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; margin-top: 18px; }
+.entry-form input, .wallet-form input { border: 1px solid var(--line); padding: 12px; font: inherit; }
+.timeline { margin: 26px 0 0; padding: 0; list-style: none; }
+.timeline-item { display: grid; grid-template-columns: 42px 1fr; gap: 18px; padding: 20px 0; border-top: 1px solid var(--line); }
+.timeline-marker { display: grid; place-items: center; width: 34px; height: 34px; font-weight: 700; background: var(--red); }
+.timeline-marker.positive { background: var(--green); }
+.timeline-item h3 { margin: 8px 0; }
+.form-shell { max-width: 680px; }
+.wallet-form { display: grid; gap: 10px; margin-top: 30px; }
+@media (max-width: 650px) { .hero { padding-top: 54px; } .entry-form { grid-template-columns: 1fr; } .balance-hero, .entry-panel, .history-panel { padding: 22px; } }

@@ -10,7 +10,7 @@ module ActiveRecord
       attr_reader :transport
 
       def initialize(config = {})
-        super(config)
+        super
         @config = config
         @transport = Chronicle::Transport.build(config)
         @transport.connect!
@@ -73,7 +73,7 @@ module ActiveRecord
         datoms = attributes.map do |k, v|
           next if k.to_s == 'id' || v.nil?
 
-          [':db/add', temp_id, ":#{namespace}/#{k}".to_sym, v]
+          [':db/add', temp_id, :":#{namespace}/#{k}", v]
         end.compact
 
         tx_result = @transport.transact(datoms)
@@ -87,7 +87,7 @@ module ActiveRecord
         datoms = attributes.map do |k, v|
           next if k.to_s == 'id'
 
-          [':db/add', entity_id, ":#{namespace}/#{k}".to_sym, v]
+          [':db/add', entity_id, :":#{namespace}/#{k}", v]
         end.compact
 
         @transport.transact(datoms)

@@ -1,0 +1,13 @@
+<% content_for :title, "Add an animal" %>
+
+<main class="form-shell">
+  <%= link_to "Back to animals", animals_path, class: "text-link" %>
+  <h1>Add an animal</h1>
+  <%= form_with model: @animal, url: animals_path, class: "animal-form" do |form| %>
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true, autofocus: true, placeholder: "Luna" %>
+    <%= form.label :species %>
+    <%= form.text_field :species, required: true, placeholder: "Red fox" %>
+    <%= form.submit "Start tracking", class: "button button-primary" %>
+  <% end %>
+</main>

@@ -14,6 +14,7 @@ module Chronicle
         raise Chronicle::Error, 'JRubyPeer transport can only be run under JRuby' unless Chronicle::Transport.jruby? || ENV['SPEC_ALLOW_JRUBY_MOCK']
 
         Chronicle::Resilience.with_retry do
+          load_datomic_jars
           @peer_connection = Java::Datomic::Peer.connect(@uri) if defined?(Java::Datomic::Peer)
           @connected = true
         end
@@ -62,6 +63,13 @@ module Chronicle
 
       def basis_t
         @current_basis_t || 0
+      end
+
+      private
+
+      def load_datomic_jars
+        datomic_home = ENV['DATOMIC_HOME'] || '/opt/datomic'
+        Dir[File.join(datomic_home, 'lib', '*.jar')].each { |jar| require jar }
       end
     end
   end
