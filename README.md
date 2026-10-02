@@ -34,10 +34,10 @@ Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record
 
 ## Installation
 
-Add Chronicle to the application Gemfile:
+Add Active Chronicle to the application Gemfile:
 
 ```ruby
-gem "chronicle"
+gem "active-chronicle"
 ```
 
 Then install the bundle:
