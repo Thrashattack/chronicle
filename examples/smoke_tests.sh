@@ -40,7 +40,7 @@ done
 wallet_cookie="$cookie_dir/wallet.cookies"
 wallet_token=$(fetch_token "$wallet_url/wallets/new" "$wallet_cookie")
 wallet_headers=$(response_headers "$wallet_cookie" "$wallet_url/wallets" \
-  -X POST --data-urlencode "authenticity_token=$wallet_token" --data-urlencode 'wallet[name]=CI Smoke Wallet')
+  -X POST --data-urlencode "authenticity_token=$wallet_token" --data-urlencode 'wallet_account[name]=CI Smoke Wallet')
 wallet_id=$(location_id "$wallet_headers" wallets)
 check_get "$wallet_url/wallets/$wallet_id"
 
