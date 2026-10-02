@@ -13,7 +13,7 @@ class WalletAccount < DatomicRecord
   def record_transaction!(amount_cents:, description:)
     transaction do
       update!(balance_cents: balance_cents + amount_cents)
-      wallet_entries.create!(amount_cents:, balance_cents:, description:)
+      WalletEntry.create!(wallet_id: id, amount_cents:, balance_cents:, description:)
     end
   end
 end

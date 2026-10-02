@@ -13,6 +13,16 @@ module Chronicle
         super.extending(Relation)
       end
 
+      def find(*ids)
+        return super unless connection.respond_to?(:transport)
+        return ids.map { |id| find(id) } if ids.size > 1
+
+        record = all.to_a.find { |item| item.id.to_s == ids.first.to_s }
+        return record if record
+
+        raise ActiveRecord::RecordNotFound, "Couldn't find #{name} with 'id'=#{ids.first}"
+      end
+
       def datomic_attribute(name, type = :string, options = {})
         self.datomic_attributes = datomic_attributes.merge(name.to_sym => { type:, options: })
 
@@ -61,8 +71,8 @@ module Chronicle
         val = public_send(attr_name)
         next if val.nil?
 
-        attr_ident = ":#{self.class.name.underscore}/#{attr_name}"
-        datoms << [':db/add', datomic_entity_id || ':temp_id', attr_ident, val]
+        attr_ident = :":#{self.class.table_name.singularize}/#{attr_name}"
+        datoms << [:'db/add', datomic_entity_id || 'chronicle_temp_id', attr_ident, val]
       end
       datoms
     end

@@ -3,9 +3,23 @@
   <h1>SQLite rows, Datomic identities.</h1>
   <p class="intro">Each purchase stores a foreign reference to a customer that lives in Datomic.</p>
   <%= link_to "Record purchase", new_purchase_path, class: "button" %>
+  <div class="pagination-summary" aria-live="polite">
+    Showing <%= @first_purchase %>-<%= @last_purchase %> of <%= @total_purchases %> purchases
+  </div>
   <section class="list">
     <% @purchases.each do |purchase| %>
       <article><strong><%= purchase.description %></strong><span><%= purchase.customer.name %></span><b><%= number_to_currency(purchase.amount_cents / 100.0) %></b></article>
     <% end %>
   </section>
+  <% if @total_pages > 1 %>
+    <nav class="pagination" aria-label="Purchase pages">
+      <% if @page > 1 %>
+        <%= link_to "Previous", purchases_path(page: @page - 1), rel: "prev" %>
+      <% end %>
+      <span>Page <%= @page %> of <%= @total_pages %></span>
+      <% if @page < @total_pages %>
+        <%= link_to "Next", purchases_path(page: @page + 1), rel: "next" %>
+      <% end %>
+    </nav>
+  <% end %>
 </main>

@@ -31,14 +31,21 @@ module Chronicle
       def transact(tx_data)
         Chronicle::Resilience.with_retry do
           result = api.transact(@connection, 'tx-data' => tx_data)
-          @current_basis_t = result['db-after']['basis-t'] || result[:'db-after'][:'basis-t']
+          @current_basis_t = result.dig('db-after', 'basis-t') if result['db-after'].is_a?(Hash)
           result
         end
       end
 
       def q(query, *args)
         Chronicle::Resilience.with_retry do
-          api.q('query' => query, 'args' => [api.db(@connection), *args])
+          database = args.first || api.db(@connection)
+          api.q('query' => query, 'args' => [database, *args.drop(1)])
+        end
+      end
+
+      def pull(entity_id, database = nil, pattern = ['*'])
+        Chronicle::Resilience.with_retry do
+          api.pull(database || api.db(@connection), entity_id, pattern)
         end
       end
 
@@ -87,7 +94,13 @@ module Chronicle
         end
 
         def q(config)
-          ruby_value(invoke('q', clojure_map(config)))
+          query_config = config.dup
+          query_config['query'] = var('clojure.core', 'list').invoke(*query_config['query'].map { |item| clojure_value(item) })
+          ruby_value(invoke('q', clojure_map(query_config)))
+        end
+
+        def pull(database, entity_id, pattern)
+          ruby_value(invoke('pull', database, clojure_value(pattern), entity_id))
         end
 
         def db(connection)
@@ -118,7 +131,7 @@ module Chronicle
         end
 
         def keyword(value)
-          var('clojure.core', 'keyword').invoke(value.to_s.tr('_', '-'))
+          var('clojure.core', 'keyword').invoke(value.to_s.delete_prefix(':').tr('_', '-'))
         end
 
         def clojure_map(hash)
@@ -144,6 +157,8 @@ module Chronicle
             return keyword(value.delete_prefix(':')) if value.start_with?(':')
 
             value
+          when Time
+            Java::JavaUtil::Date.new((value.to_f * 1000).to_i)
           else
             value
           end
@@ -156,6 +171,7 @@ module Chronicle
               result[key.to_s.delete_prefix(':')] = ruby_value(item)
             end
           end
+          return Time.at(value.getTime.to_i / 1000.0).utc if value.instance_of?(::Java::JavaUtil::Date)
 
           value
         end

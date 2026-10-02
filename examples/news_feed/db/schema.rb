@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_01_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_01_010000) do
   create_table "news_revisions", force: :cascade do |t|
     t.integer "news_story_id", null: false
     t.string "headline", null: false
@@ -28,6 +28,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_01_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
-
-  add_foreign_key "news_revisions", "news_stories"
 end

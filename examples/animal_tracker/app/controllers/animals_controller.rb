@@ -3,10 +3,13 @@ class AnimalsController < ApplicationController
 
   def index
     @animals = Animal.order(:name)
+    @location_counts = AnimalLocation.all.to_a.each_with_object(Hash.new(0)) do |location, counts|
+      counts[location.animal_id] += 1
+    end
   end
 
   def show
-    @locations = @animal.animal_locations.chronological
+    @locations = AnimalLocation.where(animal_id: @animal.id).to_a.sort_by(&:recorded_at)
     @latest = @locations.last
   end
 
@@ -25,7 +28,7 @@ class AnimalsController < ApplicationController
   end
 
   def locations
-    location = @animal.animal_locations.build(location_params.merge(recorded_at: Time.current))
+    location = AnimalLocation.new(location_params.merge(animal_id: @animal.id, recorded_at: Time.current))
 
     if location.save
       redirect_to @animal, notice: "Position recorded."

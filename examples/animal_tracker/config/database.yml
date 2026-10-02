@@ -1,7 +1,10 @@
 default: &default
   adapter: datomic
   uri: <%= ENV.fetch("DATOMIC_URI", "datomic:dev://localhost:4334/animal-tracker") %>
-  transport: peer
+  transport: client
+  client_endpoint: <%= ENV.fetch("DATOMIC_CLIENT_ENDPOINT", "localhost:8998") %>
+  access_key: <%= ENV.fetch("DATOMIC_ACCESS_KEY", "chronicle-dev") %>
+  secret: <%= ENV.fetch("DATOMIC_SECRET", "chronicle-dev-secret") %>
 
 development:
   <<: *default

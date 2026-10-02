@@ -1,5 +1,5 @@
 class NewsStoriesController < ApplicationController
-  before_action :set_news_story, only: %i[show edit update]
+  before_action :set_news_story, only: %i[show edit update destroy]
 
   def index
     @news_stories = NewsStory.all
@@ -31,6 +31,11 @@ class NewsStoriesController < ApplicationController
     else
       render :edit, status: :unprocessable_content
     end
+  end
+
+  def destroy
+    @news_story.destroy!
+    redirect_to news_stories_path, notice: 'Story and its revision history were deleted.'
   end
 
   private

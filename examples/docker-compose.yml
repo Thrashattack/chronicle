@@ -148,7 +148,9 @@ services:
         condition: service_healthy
     environment:
       DATOMIC_URI: datomic:dev://datomic:4334/animal-tracker
-      DATOMIC_TRANSPORT: peer
+      DATOMIC_CLIENT_ENDPOINT: datomic-peer:8998
+      DATOMIC_ACCESS_KEY: ${DATOMIC_ACCESS_KEY:-chronicle-dev}
+      DATOMIC_SECRET: ${DATOMIC_SECRET:-chronicle-dev-secret}
       DATOMIC_HOME: /opt/datomic
     volumes:
       - datomic-install:/opt/datomic:ro

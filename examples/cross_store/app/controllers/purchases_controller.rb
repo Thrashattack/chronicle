@@ -1,6 +1,15 @@
 class PurchasesController < ApplicationController
+  PAGE_SIZE = 25
+
   def index
-    @purchases = Purchase.order(created_at: :desc)
+    @total_purchases = Purchase.count
+    @total_pages = (@total_purchases.to_f / PAGE_SIZE).ceil
+    @page = params[:page].to_i.clamp(1, [@total_pages, 1].max)
+    @first_purchase = @total_purchases.zero? ? 0 : ((@page - 1) * PAGE_SIZE) + 1
+    @last_purchase = [@page * PAGE_SIZE, @total_purchases].min
+    @purchases = Purchase.order(created_at: :desc, id: :desc)
+                          .limit(PAGE_SIZE)
+                          .offset((@page - 1) * PAGE_SIZE)
   end
 
   def new
@@ -12,7 +21,7 @@ class PurchasesController < ApplicationController
     customer = DatomicCustomer.find(params.require(:purchase).fetch(:customer_id))
     purchase_attributes = purchase_params
 
-    Chronicle::TransactionCoordinator.transaction do |transaction|
+    Chronicle::TransactionCoordinator.transact(transport: DatomicCustomer.chronicle_transport) do |transaction|
       transaction.datomic(customer)
       transaction.sqlite do
         Purchase.create!(purchase_attributes)

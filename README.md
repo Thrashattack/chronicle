@@ -92,7 +92,14 @@ datomic:
   transport: peer
 ```
 
-The application must load the Datomic distribution jars. The included Compose examples mount them at `/opt/datomic`.
+The included Compose examples mount the Datomic distribution at `/opt/datomic`.
+Chronicle loads `peer-*.jar` from the distribution root and its dependencies from
+`lib/*.jar`. Set `DATOMIC_HOME` when the distribution is installed elsewhere.
+The Peer jar is not inside `lib`: for Datomic Pro 1.0.7705 it is
+`/opt/datomic/peer-1.0.7705.jar`, corresponding to Maven artifact
+`com.datomic:peer:1.0.7705`. Alternatively, resolve that artifact and its runtime
+dependencies onto the application JVM classpath. Startup raises an error if
+`datomic.Peer` cannot be resolved or `Peer.connect` returns no connection.
 
 ## Model Integration
 

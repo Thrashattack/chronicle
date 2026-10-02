@@ -3,7 +3,7 @@
 <main class="story-shell">
   <%= link_to 'Back to feed', news_stories_path, class: 'text-link' %>
   <article class="feature-story">
-    <div class="story-meta"><span><%= @news_story.source %></span><time>Updated <%= l @news_story.updated_at, format: :long %></time></div>
+    <div class="story-meta"><span><%= @news_story.source %></span><time>Updated <%= @news_story.updated_at ? l(@news_story.updated_at, format: :long) : 'Timestamp unavailable' %></time></div>
     <h1><%= @news_story.headline %></h1>
     <div class="story-body"><%= simple_format @news_story.body %></div>
     <%= link_to 'Update this story', edit_news_story_path(@news_story), class: 'button button-primary' %>

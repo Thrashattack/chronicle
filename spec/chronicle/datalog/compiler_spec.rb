@@ -11,7 +11,7 @@ RSpec.describe Chronicle::Datalog::Compiler do
         rel = User.where(name: 'Alice')
         result = described_class.compile(rel)
 
-        expect(result[:query]).to include(:find, '?e', :in, '$', '?param_1', :where)
+        expect(result[:query]).to include(:find, [:pull, '?e', ['*']], :in, '$', '?param_1', :where)
         expect(result[:query]).to include(['?e', :':user/name', '?param_1'])
         expect(result[:bindings]).to eq(['Alice'])
       end
@@ -67,11 +67,12 @@ RSpec.describe Chronicle::Datalog::Compiler do
     end
 
     context 'with Active Record ordering' do
-      it 'fetches ordered attributes so hydrated records can be sorted' do
+      it 'pulls complete entities so hydrated records include ordered attributes' do
         result = described_class.compile(User.order(:name))
 
-        expect(result[:find_vars]).to eq(['?e', '?name'])
-        expect(result[:query]).to include(['?e', :':user/name', '?name'])
+        expect(result[:find_vars]).to eq([[:pull, '?e', ['*']]])
+        expect(result[:query]).to include(:find, [:pull, '?e', ['*']])
+        expect(result[:query]).not_to include(['?e', :':user/name', '?name'])
       end
     end
 

@@ -2,6 +2,7 @@
 
 require 'faraday'
 require 'json'
+require 'time'
 require 'uri'
 
 Object.const_set('Bignum', Integer) unless Object.const_defined?('Bignum')
@@ -28,14 +29,27 @@ module Chronicle
       end
 
       def connect!
-        return rest_connect! if @rest
+        if @rest
+          result = rest_connect!
+          @connected = true
+          return result
+        end
 
         Chronicle::Resilience.with_retry do
           response = @connection.post('/api/connect', { uri: @uri })
           raise Chronicle::ConnectionError, "Failed to connect to Datomic Client HTTP API at #{@endpoint}" unless response.success?
 
+          @connected = true
           true
         end
+      end
+
+      def connected?
+        !!@connected
+      end
+
+      def disconnect!
+        @connected = false
       end
 
       def transact(tx_data)
@@ -66,7 +80,12 @@ module Chronicle
       end
 
       def db(as_of: nil, since: nil)
-        return { 'db/alias' => "#{@storage_alias}/#{@database_name}", 'as-of' => as_of, 'since' => since } if @rest
+        if @rest
+          database = { 'db/alias' => "#{@storage_alias}/#{@database_name}" }
+          database['as-of'] = as_of if as_of
+          database['since'] = since if since
+          return database
+        end
 
         { uri: @uri, as_of:, since:, basis_t: @current_basis_t }
       end
@@ -117,7 +136,7 @@ module Chronicle
           response = @connection.post('/api/query') do |request|
             request.headers['Content-Type'] = 'application/edn'
             request.headers['Accept'] = 'application/edn'
-            request.body = edn(query:, args:)
+            request.body = edn(q: query, args:)
           end
           raise Chronicle::Error, "Datomic REST query failed: #{response.body}" unless response.success?
 
@@ -130,13 +149,21 @@ module Chronicle
         when Hash
           "{#{value.map { |key, item| "#{edn_key(key)} #{edn(item)}" }.join(' ')}}"
         when Array
+          return "(#{value.map { |item| edn(item) }.join(' ')})" if value.first == :pull
+
           "[#{value.map { |item| edn(item) }.join(' ')}]"
         when Symbol
+          return 'pull' if value == :pull
+
           value.to_s.start_with?(':') ? value.to_s : ":#{value}"
         when String
+          return '*' if value == '*'
+
           value.match?(/\A(?:\?|\$|\.\.\.)/) ? value : JSON.generate(value)
         when NilClass
           'nil'
+        when Time
+          "#inst #{JSON.generate(value.utc.iso8601(3))}"
         when TrueClass, FalseClass, Numeric
           value.to_s
         else
