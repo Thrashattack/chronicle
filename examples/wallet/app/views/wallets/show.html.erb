@@ -28,7 +28,7 @@
       <% @entries.each do |entry| %>
         <li class="timeline-item">
           <div class="timeline-marker <%= entry.amount_cents.positive? ? 'positive' : 'negative' %>"><%= entry.amount_cents.positive? ? '+' : '-' %></div>
-          <div><time><%= l entry.created_at, format: :long %></time><h3><%= entry.description %></h3><p><%= number_to_currency(entry.amount_cents.abs / 100.0) %> changed the balance to <strong><%= number_to_currency(entry.balance_cents / 100.0) %></strong>.</p></div>
+          <div><time><%= entry.created_at ? l(entry.created_at, format: :long) : 'Timestamp unavailable' %></time><h3><%= entry.description %></h3><p><%= number_to_currency(entry.amount_cents.abs / 100.0) %> changed the balance to <strong><%= number_to_currency(entry.balance_cents / 100.0) %></strong>.</p></div>
         </li>
       <% end %>
     </ol>

@@ -10,5 +10,9 @@ h1 { max-width: 680px; font-size: clamp(2.8rem, 8vw, 6rem); line-height: .95; }
 .list { display: grid; gap: 10px; margin-top: 42px; }
 .list article { display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; padding: 20px; background: var(--card); border: 1px solid var(--line); }
 .list span { color: var(--muted); }
+.pagination-summary { margin-top: 18px; color: var(--muted); font-size: .95rem; }
+.pagination { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 22px; }
+.pagination a { padding: 8px 12px; background: var(--mint); font-weight: 700; text-decoration: none; }
+.pagination span { color: var(--muted); }
 .form { display: grid; gap: 12px; max-width: 520px; margin-top: 28px; }
 .form input, .form select { border: 1px solid var(--line); padding: 12px; background: var(--card); font: inherit; }

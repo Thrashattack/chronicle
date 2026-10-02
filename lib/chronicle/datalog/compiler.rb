@@ -25,16 +25,24 @@ module Chronicle
         # 1. Process custom select / projections if specified
         process_projections(namespace)
 
-        # 2. Process includes / eager_load for preloading associations via Datomic pull
+        # 2. Fetch model attributes for hydration when no custom projection is requested
+        process_model_attributes(namespace)
+
+        # 3. Process includes / eager_load for preloading associations via Datomic pull
         process_includes(namespace)
 
-        # 3. Process predicates in relation
+        # 4. Process predicates in relation
         process_where_clause(namespace)
 
-        # 4. Fetch attributes needed to honor Active Record ordering
+        if @where_clause.empty? && model.respond_to?(:datomic_attributes) && model.datomic_attributes.any?
+          attribute = model.datomic_attributes.keys.first
+          @where_clause << ['?e', :":#{namespace}/#{attribute}", '?value']
+        end
+
+        # 5. Fetch attributes needed to honor Active Record ordering
         process_ordering(namespace)
 
-        # 5. Assemble Datalog data structure
+        # 6. Assemble Datalog data structure
         datalog_query = @find_clause + @in_clause + [:where] + @where_clause
 
         {
@@ -91,6 +99,15 @@ module Chronicle
         @find_clause = [:find] + find_vars
       end
 
+      def process_model_attributes(namespace)
+        return if relation.select_values.present? || !model.respond_to?(:datomic_attributes)
+        return if model.datomic_attributes.empty?
+
+        @find_clause = [:find, [:pull, '?e', ['*']]]
+        attribute = model.datomic_attributes.keys.first
+        @where_clause << ['?e', :":#{namespace}/#{attribute}", '?value']
+      end
+
       def process_where_clause(namespace)
         where_predicates = extract_predicates
 
@@ -101,6 +118,7 @@ module Chronicle
 
       def process_ordering(namespace)
         return unless relation.respond_to?(:order_values)
+        return if @find_clause[1].is_a?(Array)
 
         relation.order_values.each do |order|
           expression = order.respond_to?(:expr) ? order.expr : order
@@ -131,6 +149,13 @@ module Chronicle
           attr_name = pred.left.name
           val = unwrap_value(pred.right)
           param_var = "?param_#{next_var_id}"
+
+          if attr_name.to_s == 'id'
+            @where_clause << [[:'=', '?e', param_var]]
+            @in_clause << param_var
+            @bindings << val
+            return
+          end
 
           @where_clause << ['?e', :":#{namespace}/#{attr_name}", param_var]
           @in_clause << param_var

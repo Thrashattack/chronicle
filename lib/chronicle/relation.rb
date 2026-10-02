@@ -28,13 +28,23 @@ module Chronicle
 
       # Obtain transport adapter and database snapshot
       adapter = klass.respond_to?(:chronicle_transport) ? klass.chronicle_transport : Chronicle::Transport.client
+      klass.connection.ensure_model_schema(klass) if klass.connection.respond_to?(:ensure_model_schema)
       db_snapshot = adapter.db(
         as_of: time_travel_options&.dig(:as_of),
         since: time_travel_options&.dig(:since)
       )
 
       # Query Datomic endpoint
-      raw_results = adapter.q(compiled[:query], db_snapshot, *compiled[:bindings])
+      raw_results = if adapter.respond_to?(:pull) && compiled[:query][1].is_a?(Array) && compiled[:query][1].first == :pull
+                      id_query = compiled[:query].dup
+                      id_query[id_query.index(:find) + 1] = '?e'
+                      entity_ids = adapter.q(id_query, db_snapshot, *compiled[:bindings]).map do |row|
+                        row.is_a?(Array) ? row.first : row
+                      end
+                      entity_ids.map { |entity_id| adapter.pull(entity_id, db_snapshot) }
+                    else
+                      adapter.q(compiled[:query], db_snapshot, *compiled[:bindings])
+                    end
 
       # Map raw Datoms/tuples back into Active Record model instances using Hydrator
       @records = order_records(Hydrator.hydrate(klass, raw_results, compiled))

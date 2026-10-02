@@ -15,7 +15,7 @@
         <%= link_to wallet_path(wallet), class: 'wallet-card' do %>
           <span class="eyebrow"><%= wallet.name %></span>
           <strong><%= number_to_currency(wallet.balance_cents / 100.0) %></strong>
-          <span><%= pluralize(wallet.wallet_entries.size, 'change') %> recorded</span>
+          <span><%= pluralize(@entry_counts[wallet.id], 'change') %> recorded</span>
         <% end %>
       <% end %>
     </div>

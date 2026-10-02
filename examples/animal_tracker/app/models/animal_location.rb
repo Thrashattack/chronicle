@@ -6,7 +6,7 @@ class AnimalLocation < ApplicationRecord
   datomic_attribute :longitude, :float
   datomic_attribute :recorded_at, :instant
 
-  belongs_to :animal
+  belongs_to :animal, optional: true
 
   scope :chronological, -> { order(recorded_at: :asc) }
 end

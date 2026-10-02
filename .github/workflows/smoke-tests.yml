@@ -1,0 +1,71 @@
+name: smoke tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  examples:
+    name: Example app smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby for smoke request parsing
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.5'
+
+      - name: Build example images
+        run: docker compose -f examples/docker-compose.yml build
+
+      - name: Start example stack
+        run: docker compose -f examples/docker-compose.yml up -d
+
+      - name: Smoke test example homepages
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in \
+            http://localhost:3000/ \
+            http://localhost:3001/ \
+            http://localhost:3002/ \
+            http://localhost:3003/; do
+            echo "Checking $url"
+            ready=false
+            for attempt in {1..30}; do
+              if curl --fail --silent --show-error "$url" >/dev/null; then
+                ready=true
+                break
+              fi
+              sleep 2
+            done
+            if [[ "$ready" != true ]]; then
+              echo "Service did not become ready: $url" >&2
+              exit 1
+            fi
+          done
+
+      - name: Prepare example databases
+        run: |
+          docker compose -f examples/docker-compose.yml exec -T news_feed bundle exec bin/rails db:migrate:primary
+          docker compose -f examples/docker-compose.yml exec -T cross_store bundle exec bin/rails runner 'DatomicCustomer.create!(name: "CI Smoke Customer", email: "ci-smoke@example.test")'
+
+      - name: Run cross-store benchmark
+        run: docker compose -f examples/docker-compose.yml exec -T cross_store env ITERATIONS=1000 bundle exec ruby benchmark/cross_store_benchmark.rb
+
+      - name: Smoke test controller workflows
+        run: bash examples/smoke_tests.sh
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose -f examples/docker-compose.yml logs --no-color
+
+      - name: Stop example stack
+        if: always()
+        run: docker compose -f examples/docker-compose.yml down -v --remove-orphans

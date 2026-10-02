@@ -8,7 +8,7 @@ class CreateNewsStories < ActiveRecord::Migration[8.1]
     end
 
     create_table :news_revisions do |t|
-      t.references :news_story, null: false, foreign_key: true
+      t.references :news_story, null: false
       t.string :headline, null: false
       t.text :body, null: false
       t.string :source, null: false

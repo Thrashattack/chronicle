@@ -15,7 +15,7 @@
         <%= link_to animal_path(animal), class: "animal-card" do %>
           <span class="species"><%= animal.species %></span>
           <h3><%= animal.name %></h3>
-          <span><%= pluralize(animal.animal_locations.size, "position") %> recorded</span>
+          <span><%= pluralize(@location_counts[animal.id], "position") %> recorded</span>
         <% end %>
       <% end %>
     </div>

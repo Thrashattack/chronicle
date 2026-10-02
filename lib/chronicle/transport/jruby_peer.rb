@@ -15,7 +15,15 @@ module Chronicle
 
         Chronicle::Resilience.with_retry do
           load_datomic_jars
-          @peer_connection = Java::Datomic::Peer.connect(@uri) if defined?(Java::Datomic::Peer)
+          peer_class = peer_api_class
+          unless peer_class
+            raise Chronicle::Error,
+                  'JRubyPeer requires datomic.Peer on the JVM classpath; add the Datomic Peer API library (com.datomic/peer)'
+          end
+
+          @peer_connection = peer_class.connect(@uri)
+          raise Chronicle::ConnectionError, 'Datomic Peer.connect returned no connection' unless @peer_connection
+
           @connected = true
         end
       end
@@ -69,7 +77,14 @@ module Chronicle
 
       def load_datomic_jars
         datomic_home = ENV['DATOMIC_HOME'] || '/opt/datomic'
-        Dir[File.join(datomic_home, 'lib', '*.jar')].each { |jar| require jar }
+        jars = Dir[File.join(datomic_home, 'peer-*.jar'), File.join(datomic_home, 'lib', '*.jar')]
+        jars.each { |jar| require jar }
+      end
+
+      def peer_api_class
+        Java::Datomic::Peer
+      rescue NameError
+        nil
       end
     end
   end

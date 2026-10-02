@@ -43,6 +43,8 @@ module Chronicle
         attributes = {}
         associations = {}
 
+        row = row.first if row.is_a?(Array) && row.size == 1 && row.first.is_a?(Hash)
+
         if row.is_a?(Hash)
           # Datomic Entity Map (from pull query or entity map)
           row.each do |key, val|
@@ -92,9 +94,9 @@ module Chronicle
         elsif str_key.include?('/')
           # Namespace attribute like "user/name" -> "name"
           parts = str_key.split('/')
-          parts.last
+          parts.last.tr('-', '_')
         else
-          str_key
+          str_key.tr('-', '_')
         end
       end
 

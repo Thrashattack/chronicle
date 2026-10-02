@@ -4,6 +4,8 @@ class NewsStory < DatomicRecord
   datomic_attribute :headline, :string
   datomic_attribute :body, :string
   datomic_attribute :source, :string
+  datomic_attribute :created_at, :instant
+  datomic_attribute :updated_at, :instant
 
   has_many :news_revisions, dependent: :destroy
 

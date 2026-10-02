@@ -85,7 +85,7 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
   end
 
   describe 'CRuby REST Transport' do
-    it 'sends the Datalog form under the REST :query key' do
+    it 'sends the Datalog form under the REST :q key' do
       transport = Chronicle::Transport::CRubyClient.new(
         client_endpoint: 'http://localhost:8001',
         uri: 'datomic:dev://localhost:4334/chronicle_test',
@@ -93,7 +93,7 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
       )
       stubs = Faraday::Adapter::Test::Stubs.new do |stub|
         stub.post('/api/query') do |env|
-          expect(env.body).to eq('{:query [:find ?e] :args [{:db/alias "dev/chronicle_test" :as-of nil :since nil}]}')
+          expect(env.body).to eq('{:q [:find ?e] :args [{:db/alias "dev/chronicle_test" :as-of nil :since nil}]}')
           [200, { 'Content-Type' => 'application/edn' }, '[]']
         end
       end
@@ -124,6 +124,7 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
       let(:mock_tx_map) { instance_double('Java::Util::Map') }
 
       before do
+        allow(transport).to receive(:load_datomic_jars)
         stub_const('Java::Datomic::Peer', mock_peer_class)
         stub_const('Java::Datomic::Peer::BASIS_T', ':db/basis-t')
         stub_const('Java::Datomic::Peer::DB_BEFORE', ':db/before')
@@ -135,6 +136,16 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
 
         transport.connect!
         expect(transport.peer_connection).to eq(mock_connection)
+      end
+
+      it 'rejects a nil connection without marking the transport connected' do
+        allow(mock_peer_class).to receive(:connect).with(uri).and_return(nil)
+        allow(Chronicle::Resilience).to receive(:with_retry).and_wrap_original do |retry_method, &block|
+          retry_method.call(max_retries: 0, &block)
+        end
+
+        expect { transport.connect! }.to raise_error(Chronicle::ConnectionError, /returned no connection/)
+        expect(transport.instance_variable_get(:@connected)).not_to be_truthy
       end
 
       it 'invokes Java Peer transact and extracts basis_t from Java Map' do
@@ -179,6 +190,20 @@ RSpec.describe 'Transport Layer Interop Specs (CRuby HTTP vs JRuby JVM)' do
 
       it 'raises Chronicle::Error enforcing JRuby runtime guard' do
         expect { transport.connect! }.to raise_error(Chronicle::Error, /can only be run under JRuby/)
+      end
+    end
+
+    context 'when the Datomic Peer API class is missing' do
+      before do
+        ENV['SPEC_ALLOW_JRUBY_MOCK'] = 'true'
+        allow(transport).to receive(:load_datomic_jars)
+        hide_const('Java::Datomic::Peer')
+      end
+
+      it 'fails connect! instead of marking a nil peer connection connected' do
+        expect { transport.connect! }.to raise_error(Chronicle::Error, /datomic\.Peer.*JVM classpath/)
+        expect(transport.peer_connection).to be_nil
+        expect(transport.instance_variable_get(:@connected)).not_to be_truthy
       end
     end
   end

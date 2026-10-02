@@ -3,10 +3,13 @@ class WalletsController < ApplicationController
 
   def index
     @wallets = WalletAccount.order(:name)
+    @entry_counts = WalletEntry.all.to_a.each_with_object(Hash.new(0)) do |entry, counts|
+      counts[entry.wallet_id] += 1
+    end
   end
 
   def show
-    @entries = @wallet.wallet_entries.order(created_at: :desc)
+    @entries = WalletEntry.where(wallet_id: @wallet.id).to_a.sort_by { |entry| entry.created_at || Time.at(0) }.reverse
   end
 
   def new
@@ -17,7 +20,7 @@ class WalletsController < ApplicationController
     @wallet = WalletAccount.new(wallet_params.merge(balance_cents: 0))
 
     if @wallet.save
-      redirect_to @wallet, notice: 'Wallet created.'
+      redirect_to wallet_path(@wallet), notice: 'Wallet created.'
     else
       render :new, status: :unprocessable_content
     end
@@ -51,7 +54,7 @@ class WalletsController < ApplicationController
   def record_entry(amount_cents, default_description)
     description = params[:description].presence || default_description
     @wallet.record_transaction!(amount_cents:, description:)
-    redirect_to @wallet, notice: "#{default_description} recorded."
+    redirect_to wallet_path(@wallet), notice: "#{default_description} recorded."
   rescue ArgumentError
     redirect_to @wallet, alert: 'Enter an amount greater than zero.'
   end
