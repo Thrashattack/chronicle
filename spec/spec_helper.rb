@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'simplecov'
-require 'chronicle'
+require 'active_chronicle'
 require 'active_record'
 
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')

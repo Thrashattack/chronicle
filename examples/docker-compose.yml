@@ -123,7 +123,7 @@ services:
       DISABLE_SPRING: "1"
     ports:
       - "3001:3000"
-    command: bundle exec bin/rails server -b 0.0.0.0
+    command: sh -ec 'bundle exec bin/rails db:migrate:primary && exec bundle exec bin/rails server -b 0.0.0.0'
 
   cross_store:
     build:
@@ -137,7 +137,7 @@ services:
       DATOMIC_CLIENT_ENDPOINT: http://datomic_rest:8001
     ports:
       - "3003:3000"
-    command: sh -ec 'cd /app/examples/cross_store && bundle exec bin/rails db:migrate:primary && exec bundle exec bin/rails server -b 0.0.0.0'
+    command: sh -ec 'cd /app/examples/cross_store && bundle exec bin/rails db:migrate:primary && bundle exec bin/rails runner "load Rails.root.join(\"db/seeds.rb\")" && exec bundle exec bin/rails server -b 0.0.0.0'
 
   animal_tracker:
     build:
