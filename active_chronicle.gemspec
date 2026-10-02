@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
 
   release_files = Dir.glob('lib/**/*').select { |path| File.file?(path) }
-  spec.files = release_files + %w[README.md CHANGELOG.md LICENSE.txt]
+  spec.files = release_files + %w[README.md CHANGELOG.md LICENSE]
   spec.require_paths = ['lib']
 
   spec.add_dependency 'activerecord', '>= 7.0.0'
