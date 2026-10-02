@@ -3,7 +3,7 @@
 require_relative 'lib/chronicle/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'chronicle'
+  spec.name          = 'active-chronicle'
   spec.version       = Chronicle::VERSION
   spec.authors       = ['Chronicle Core Team']
   spec.email         = ['dev@github.com/Thrashattack/chronicle']
