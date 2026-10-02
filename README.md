@@ -248,7 +248,6 @@ gem build chronicle.gemspec
 ## Special Thanks
 
 - Thanks to the creators of [Diametric](https://github.com/relevance/diametric), it was the spark of inspiration for this project.
-- Thanks to 
 
 ## License
 
