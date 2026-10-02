@@ -41,7 +41,7 @@ class WalletsController < ApplicationController
   end
 
   def wallet_params
-    params.require(:wallet).permit(:name)
+    params.require(:wallet_account).permit(:name)
   end
 
   def positive_amount

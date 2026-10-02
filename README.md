@@ -1,11 +1,11 @@
-# Chronicle
+# Active Chronicle
 
 [![CI](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml/badge.svg)](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/Thrashattack/chronicle/branch/main/graph/badge.svg)](https://codecov.io/gh/Thrashattack/chronicle)
 [![Gem Version](https://img.shields.io/gem/v/chronicle.svg)](https://rubygems.org/gems/chronicle)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.4.5-CC342D.svg)](https://www.ruby-lang.org/)
 
-Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record models to Datomic facts and exposes immutable history through normal Rails query patterns.
+Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record models to Datomic facts and exposes immutable history through normal Rails query patterns. Check [Datomic](https://www.datomic.com/) page
 
 ## Requirements
 
@@ -37,7 +37,7 @@ Chronicle connects Datomic to Ruby on Rails Active Record. It maps Active Record
 Add Active Chronicle to the application Gemfile:
 
 ```ruby
-gem "active-chronicle"
+gem "active_chronicle"
 ```
 
 Then install the bundle:
@@ -244,6 +244,11 @@ gem build chronicle.gemspec
 - The JRuby Peer API requires the Datomic distribution jars and a JVM.
 - The Docker examples use Datomic Pro distribution downloads. Review Datomic licensing and distribution terms before use.
 - JRuby and Datomic containers are not required to run the CRuby unit test suite.
+
+## Special Thanks
+
+- Thanks to the creators of [Diametric](https://github.com/relevance/diametric), it was the spark of inspiration for this project.
+- Thanks to 
 
 ## License
 
