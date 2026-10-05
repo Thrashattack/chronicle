@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml/badge.svg)](https://github.com/Thrashattack/chronicle/actions/workflows/ci.yml)
 [![CI](https://github.com/Thrashattack/chronicle/actions/workflows/smoke-tests.yml/badge.svg)](https://github.com/Thrashattack/chronicle/actions/workflows/smoke-tests.yml)
-[![Coverage](https://codecov.io/gh/Thrashattack/chronicle/branch/main/graph/badge.svg)](https://codecov.io/gh/Thrashattack/chronicle)
+[![Coverage](https://coveralls.io/repos/github/Thrashattack/chronicle/badge.svg)](https://coveralls.io/github/Thrashattack/chronicle)
 [![Gem Version](https://img.shields.io/gem/v/chronicle.svg)](https://rubygems.org/gems/chronicle)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.4.5-CC342D.svg)](https://www.ruby-lang.org/)
 
