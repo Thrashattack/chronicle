@@ -67,8 +67,7 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
         with:
-          files: coverage/.resultset.json
-          fail_ci_if_error: false
+          github-token: ${{secrets.COVERALLS_TOKEN}}
